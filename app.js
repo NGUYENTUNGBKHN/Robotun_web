@@ -211,7 +211,16 @@ function showPage(id) {
 // ── Markdown renderer ──────────────────────────────────────
 function mdToHtml(md) {
   if (!md) return '';
-  return md
+  
+  // FIRST: Process images BEFORE links (because images contain ! prefix)
+  // Handle both ![alt](url) and ![alt](data:image/...)
+  md = md.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+    // Protect image tags by wrapping in a marker
+    return `__IMG_TAG__alt="${alt}"src="${src}"__END_IMG__`;
+  });
+  
+  // Now process regular markdown
+  md = md
     .replace(/```(\w+)?\n([\s\S]*?)```/g, (_, l, c) =>
       `<pre><code class="lang-${l || 'text'}">${esc(c.trim())}</code></pre>`)
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
@@ -224,7 +233,6 @@ function mdToHtml(md) {
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
-    .replace(/!\[(.+?)\]\((.+?)\)/g, '<img src="$2" alt="$1">')
     .replace(/^\s*[-*] (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>[\s\S]+?<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
     .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
@@ -232,9 +240,16 @@ function mdToHtml(md) {
     .map(b => {
       b = b.trim();
       if (!b) return '';
-      if (/^<(h[123]|ul|ol|blockquote|pre|hr|img)/.test(b)) return b;
+      // Check for image tags, code blocks, headings, etc
+      if (/^<(h[123]|ul|ol|blockquote|pre|hr|img)|^__IMG_TAG__/.test(b)) return b;
       return `<p>${b.replace(/\n/g, ' ')}</p>`;
     }).join('\n');
+  
+  // LAST: Convert protected image markers back to actual img tags
+  md = md.replace(/__IMG_TAG__alt="([^"]*)"src="([^"]*)"__END_IMG__/g, 
+    '<img src="$2" alt="$1">');
+  
+  return md;
 }
 function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
@@ -393,6 +408,11 @@ function openAdminPage() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   document.title = 'Admin — RoboTun';
 
+  // Reset images for new article
+  uploadedImages = {};
+  imageRegistry = {};
+  console.log('Image registry reset for new article');
+
   // Set today's date
   document.getElementById('fDate').value = new Date().toISOString().slice(0, 10);
 
@@ -404,12 +424,7 @@ function openAdminPage() {
     ).join('')}</span>`
   ).join('');
 
-  updateAdminHint();
-}
-
-function adminLogout() {
-  navigate('home');
-  document.title = 'RoboTun — Embedded & Systems';
+  updument.title = 'RoboTun — Embedded & Systems';
 }
 
 function updateAdminHint() {
@@ -454,6 +469,49 @@ function switchTab(tab) {
   }
 }
 
+// ── Insert markdown with toolbar ────────────────────────
+function insertMarkdown(openTag, closeTag = '') {
+  const textarea = document.getElementById('fContent');
+  if (!textarea) return;
+  
+  textarea.focus();
+  
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selectedText = textarea.value.substring(start, end);
+  const beforeText = textarea.value.substring(0, start);
+  const afterText = textarea.value.substring(end);
+  
+  // If text is selected, wrap it; otherwise insert tags
+  if (selectedText) {
+    textarea.value = beforeText + openTag + selectedText + closeTag + afterText;
+    textarea.selectionStart = start + openTag.length;
+    textarea.selectionEnd = start + openTag.length + selectedText.length;
+  } else {
+    // Insert placeholder text
+    let placeholder = 'text';
+    if (openTag.includes('#')) placeholder = 'Heading';
+    if (openTag.includes('**')) placeholder = 'bold text';
+    if (openTag.includes('*') && !openTag.includes('**')) placeholder = 'italic text';
+    if (openTag.includes('```')) placeholder = 'code';
+    if (openTag.includes('[')) placeholder = 'Link text';
+    if (openTag.includes('![')) placeholder = 'alt text';
+    if (openTag.includes('>')) placeholder = 'quote text';
+    if (openTag.includes('-')) placeholder = 'list item';
+    
+    const fullText = openTag + placeholder + closeTag;
+    textarea.value = beforeText + fullText + afterText;
+    
+    // Select the placeholder text
+    const placeholderStart = start + openTag.length;
+    textarea.selectionStart = placeholderStart;
+    textarea.selectionEnd = placeholderStart + placeholder.length;
+  }
+  
+  // Trigger preview update
+  syncPreview();
+}
+
 function syncPreview() {
   // Only update preview if preview tab is active
   const previewEl = document.getElementById('fPreview');
@@ -468,40 +526,131 @@ let uploadedImages = {};
 
 function handleImageDrop(e) {
   e.preventDefault();
+  e.stopPropagation();
   e.dataTransfer.dropEffect = 'copy';
-  document.getElementById('imageUploadArea').classList.remove('dragover');
+  const uploadArea = document.getElementById('imageUploadArea');
+  if (uploadArea) {
+    uploadArea.classList.remove('dragover');
+  }
   
-  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+  const files = Array.from(e.dataTransfer.files || []).filter(f => f.type.startsWith('image/'));
+  console.log(`Drop: ${files.length} image(s)`);
   processImages(files);
 }
 
-document.getElementById('imageUploadArea')?.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  document.getElementById('imageUploadArea').classList.add('dragover');
-});
-
-document.getElementById('imageUploadArea')?.addEventListener('dragleave', () => {
-  document.getElementById('imageUploadArea').classList.remove('dragover');
-});
-
-document.getElementById('imageUploadArea')?.addEventListener('click', () => {
-  document.getElementById('imageInput').click();
-});
-
 function handleImageSelect(e) {
-  const files = Array.from(e.target.files);
+  const files = Array.from(e.target.files || []);
+  console.log(`Select: ${files.length} file(s)`);
   processImages(files);
+}
+
+// ── Image modal functions ──────────────────────────────
+function openImageModal() {
+  const modal = document.getElementById('imageModal');
+  if (modal) {
+    modal.classList.remove('modal-hidden');
+    setupImageUpload();
+  }
+}
+
+function closeImageModal() {
+  const modal = document.getElementById('imageModal');
+  if (modal) {
+    modal.classList.add('modal-hidden');
+  }
+}
+
+// Close modal when clicking outside
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('imageModal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeImageModal();
+      }
+    });
+  }
+});
+
+// Setup image upload events when DOM is ready
+function setupImageUpload() {
+  const uploadArea = document.getElementById('imageUploadArea');
+  const imageInput = document.getElementById('imageInput');
+  
+  if (!uploadArea || !imageInput) {
+    console.warn('Image upload elements not found');
+    return;
+  }
+  
+  // Drag over
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadArea.classList.add('dragover');
+  });
+
+  // Drag leave
+  uploadArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+  });
+
+  // Drop
+  uploadArea.addEventListener('drop', handleImageDrop);
+
+  // Click to select
+  uploadArea.addEventListener('click', () => {
+    imageInput.click();
+  });
+
+  // File input change
+  imageInput.addEventListener('change', handleImageSelect);
+  
+  console.log('Image upload events setup complete');
 }
 
 function processImages(files) {
+  if (!files || files.length === 0) {
+    console.warn('No files to process');
+    return;
+  }
+  
+  console.log(`Processing ${files.length} file(s)...`);
+  
   files.forEach(file => {
+    // Check if file is image
+    if (!file.type.startsWith('image/')) {
+      console.warn(`Skipped non-image: ${file.name} (type: ${file.type})`);
+      return;
+    }
+    
+    // Check file size (max 5MB to avoid huge base64 strings)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+      console.warn(`File too large: ${file.name} (${sizeMB}MB, max 5MB)`);
+      alert(`⚠ Image too large: ${file.name}\nMax size: 5MB`);
+      return;
+    }
+    
     const reader = new FileReader();
+    
     reader.onload = (event) => {
-      const base64 = event.target.result;
-      const imageId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      uploadedImages[imageId] = { base64, name: file.name };
-      renderImagePreview();
+      try {
+        const base64 = event.target.result;
+        const imageId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        uploadedImages[imageId] = { base64, name: file.name };
+        console.log(`✓ Loaded: ${file.name} (${file.size} bytes → ${base64.length} chars in base64)`);
+        renderImagePreview();
+      } catch (error) {
+        console.error(`Error loading ${file.name}:`, error);
+      }
     };
+    
+    reader.onerror = () => {
+      console.error(`FileReader error for ${file.name}`);
+    };
+    
     reader.readAsDataURL(file);
   });
 }
@@ -509,6 +658,14 @@ function processImages(files) {
 function renderImagePreview() {
   const previewList = document.getElementById('imagePreviewList');
   const insertBtn = document.getElementById('insertImagesBtn');
+  
+  if (!previewList) {
+    console.error('Image preview list element not found');
+    return;
+  }
+  
+  const imageCount = Object.keys(uploadedImages).length;
+  console.log(`Rendering ${imageCount} image preview(s)`);
   
   previewList.innerHTML = Object.entries(uploadedImages).map(([id, img]) => `
     <div class="image-preview-item" title="${img.name}">
@@ -518,7 +675,12 @@ function renderImagePreview() {
   `).join('');
   
   // Show/hide insert button
-  insertBtn.style.display = Object.keys(uploadedImages).length > 0 ? 'block' : 'none';
+  if (insertBtn) {
+    insertBtn.style.display = imageCount > 0 ? 'block' : 'none';
+    console.log(`Insert button: ${imageCount > 0 ? 'visible' : 'hidden'}`);
+  } else {
+    console.warn('Insert images button not found');
+  }
 }
 
 function removeImage(id) {
@@ -527,19 +689,32 @@ function removeImage(id) {
 }
 
 function insertImageToContent() {
-  if (Object.keys(uploadedImages).length === 0) return;
+  if (Object.keys(uploadedImages).length === 0) {
+    console.warn('No images to insert');
+    return;
+  }
   
   const contentEl = document.getElementById('fContent');
+  if (!contentEl) {
+    console.error('Content element not found');
+    return;
+  }
+  
   let markdown = '\n\n';
   
-  Object.values(uploadedImages).forEach(img => {
-    markdown += `![Image](${img.base64})\n\n`;
+  Object.values(uploadedImages).forEach((img, index) => {
+    markdown += `![${img.name}](${img.base64})\n\n`;
+    console.log(`Added image ${index + 1}: ${img.name}`);
   });
   
   contentEl.value += markdown;
+  console.log(`Inserted ${Object.keys(uploadedImages).length} image(s)`);
+  
   uploadedImages = {};
   renderImagePreview();
   syncPreview();
+  
+  console.log('Image preview cleared');
 }
 
 // ── Generate file ─────────────────────────────────────────
@@ -574,7 +749,24 @@ function generateFile() {
     .replace(/`/g, '\\`')
     .replace(/\$\{/g, '\\${');
 
-  // Generate file content
+  // Generate images object - data for copy
+  let imagesCode = '';
+  let imagesDisplay = '';
+  if (Object.keys(imageRegistry).length > 0) {
+    imagesCode = `\n\n// Images data (referenced in markdown)\nconst POST_IMAGES = {\n`;
+    imagesDisplay = `\n\n// Images: ${Object.keys(imageRegistry).length} image(s) embedded\n// (Full base64 data included when copied)\nconst POST_IMAGES = {\n`;
+    
+    Object.entries(imageRegistry).forEach(([imgId, imgData]) => {
+      const base64Str = imgData.base64;
+      const base64Preview = base64Str.substring(0, 50) + '...[' + Math.round(base64Str.length / 1024) + 'KB]';
+      imagesCode += `  "${imgId}": { name: "${imgData.name.replace(/"/g, '\\"')}", base64: \`${base64Str}\` },\n`;
+      imagesDisplay += `  "${imgId}": { name: "${imgData.name.replace(/"/g, '\\"')}", base64: \`${base64Preview}\` },\n`;
+    });
+    imagesCode += `};\n`;
+    imagesDisplay += `};\n`;
+  }
+
+  // Generate file content - FULL VERSION for copy
   const fileContent =
 `POSTS_DATA.push({
   id: "${id}",
@@ -584,40 +776,79 @@ function generateFile() {
   author: "${author}",
   tags: [${tags.map(t => `"${t}"`).join(', ')}],
   content: \`${escapedContent}\`
-});`;
+});${imagesCode}`;
 
-  const manifestEntry = `"${filename}" in posts-manifest.json`;
+  // Generate display version - TRUNCATED for UI
+  const fileContentDisplay =
+`POSTS_DATA.push({
+  id: "${id}",
+  title: "${title.replace(/"/g, '\\"')}",
+  excerpt: "${excerpt.replace(/"/g, '\\"')}",
+  date: "${date}",
+  author: "${author}",
+  tags: [${tags.map(t => `"${t}"`).join(', ')}],
+  content: \`${escapedContent}\`
+});${imagesDisplay}`;
 
-  // Show output
+  // Store full content for copy, but display truncated version
+  document.getElementById('outputCode').dataset.fullContent = fileContent;
+  document.getElementById('outputCode').textContent = fileContentDisplay;
+  document.getElementById('outFilenameLabel').textContent = filename;
+  document.getElementById('outFilename').textContent = `posts/${filename}`;
   document.getElementById('outputBox').classList.add('hidden');
   document.getElementById('outputReady').classList.remove('hidden');
-  document.getElementById('outFilename').textContent = `posts/${filename}`;
-  document.getElementById('outFilenameLabel').textContent = `posts/${filename}`;
-  document.getElementById('outScriptTag').textContent = manifestEntry;
-  document.getElementById('outputCode').textContent = fileContent;
 
-  // Scroll to output on mobile
-  document.getElementById('outputReady').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Update manifest snippet
+  document.getElementById('outScriptTag').innerHTML =
+    `<code>&lt;script src="posts/${filename}"&gt;&lt;/script&gt;</code>`;
 }
 
-// ── Copy output ───────────────────────────────────────────
+// ── Copy output ────────────────────────────────────────────
 function copyOutput() {
-  const code = document.getElementById('outputCode').textContent;
-  navigator.clipboard.writeText(code).then(() => {
-    const btn = document.getElementById('copyBtn');
-    btn.textContent = '✓ Copied!';
-    btn.classList.add('copied');
-    setTimeout(() => {
-      btn.textContent = 'Copy';
-      btn.classList.remove('copied');
-    }, 2000);
-  }).catch(() => {
-    // Fallback
+  // Use full content from dataset, not the truncated display version
+  const code = document.getElementById('outputCode').dataset.fullContent || 
+               document.getElementById('outputCode').textContent;
+  const btn = document.getElementById('copyBtn');
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    }).catch(() => {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = code;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    });
+  } else {
+    // Fallback for older browsers
     const ta = document.createElement('textarea');
     ta.value = code;
     document.body.appendChild(ta);
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-  });
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  }
 }
+
+// ── Admin logout ───────────────────────────────────────────
+function adminLogout() {
+  showPage('pageHome');
+  document.title = 'RoboTun — Embedded & Systems';
+}
+
+// Initialize image registry
+let imageRegistry = {};

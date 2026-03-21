@@ -454,23 +454,6 @@
           </div>
 
           <div class="field-group">
-            <label class="field-label">Upload Images</label>
-            <div class="image-upload-area" id="imageUploadArea" ondrop="handleImageDrop(event)" ondragover="event.preventDefault()" ondragleave="event.target.classList.remove('dragover')">
-              <input type="file" id="imageInput" class="image-input-hidden" multiple accept="image/*" onchange="handleImageSelect(event)">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                <path d="M8 8h32v24l-8-8-8 8-8-6-8 8V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="28" cy="16" r="3" fill="currentColor"/>
-              </svg>
-              <p class="upload-text">Drag images here or <strong>click to select</strong></p>
-              <p class="upload-hint">Images will be converted to Base64 (embedded in article)</p>
-              <div class="image-preview-list" id="imagePreviewList"></div>
-              <button type="button" class="btn-insert-images" id="insertImagesBtn" style="display:none;" onclick="insertImageToContent()">
-                ↓ Insert selected images to content
-              </button>
-            </div>
-          </div>
-
-          <div class="field-group">
             <div class="field-label-row">
               <label class="field-label">Content (Markdown) <span class="field-req">*</span></label>
               <div class="editor-tabs">
@@ -478,7 +461,32 @@
                 <button class="etab" id="tabPreview" onclick="switchTab('preview')">Preview</button>
               </div>
             </div>
-            <textarea id="fContent" class="field-input field-textarea-lg" rows="18"
+            
+            <!-- Markdown Toolbar -->
+            <div class="editor-toolbar">
+              <button type="button" class="etb-btn" onclick="insertMarkdown('# ', '')" title="Heading 1">H1</button>
+              <button type="button" class="etb-btn" onclick="insertMarkdown('## ', '')" title="Heading 2">H2</button>
+              <button type="button" class="etb-btn" onclick="insertMarkdown('### ', '')" title="Heading 3">H3</button>
+              
+              <div class="etb-sep"></div>
+              
+              <button type="button" class="etb-btn" onclick="insertMarkdown('**', '**')" title="Bold"><strong>B</strong></button>
+              <button type="button" class="etb-btn" onclick="insertMarkdown('*', '*')" title="Italic"><em>I</em></button>
+              <button type="button" class="etb-btn" onclick="insertMarkdown('`', '`')" title="Inline Code">Code</button>
+              
+              <div class="etb-sep"></div>
+              
+              <button type="button" class="etb-btn" onclick="insertMarkdown('```c\n', '\n```')" title="Code Block">Code Block</button>
+              <button type="button" class="etb-btn" onclick="insertMarkdown('> ', '')" title="Quote">Quote</button>
+              <button type="button" class="etb-btn" onclick="insertMarkdown('- ', '')" title="List">List</button>
+              
+              <div class="etb-sep"></div>
+              
+              <button type="button" class="etb-btn" onclick="insertMarkdown('[', '](https://)')" title="Link">Link</button>
+              <button type="button" class="etb-btn" onclick="openImageModal()" title="Image">Image</button>
+            </div>
+            
+            <textarea id="fContent" class="field-input field-textarea-lg" rows="25"
                       placeholder="## Title
 
 Markdown content here...
@@ -534,6 +542,37 @@ Markdown content here...
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ IMAGE UPLOAD MODAL ══ -->
+  <div id="imageModal" class="image-modal modal-hidden">
+    <div class="image-modal-content">
+      <div class="image-modal-header">
+        <h2>Upload Images</h2>
+        <button class="modal-close" onclick="closeImageModal()">✕</button>
+      </div>
+      
+      <div class="image-modal-body">
+        <div class="image-upload-area" id="imageUploadArea" ondrop="handleImageDrop(event)" ondragover="event.preventDefault()" ondragleave="event.target.classList.remove('dragover')">
+          <input type="file" id="imageInput" class="image-input-hidden" multiple accept="image/*" onchange="handleImageSelect(event)">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <path d="M8 8h32v24l-8-8-8 8-8-6-8 8V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="28" cy="16" r="3" fill="currentColor"/>
+          </svg>
+          <p class="upload-text">Drag images here or <strong>click to select</strong></p>
+          <p class="upload-hint">Images will be converted to Base64 (embedded in article)</p>
+        </div>
+        
+        <div class="image-preview-list" id="imagePreviewList"></div>
+      </div>
+      
+      <div class="image-modal-footer">
+        <button type="button" class="btn-ghost" onclick="closeImageModal()">Close</button>
+        <button type="button" class="btn-primary" id="insertImagesBtn" style="display:none;" onclick="insertImageToContent()">
+          ✓ Insert images
+        </button>
       </div>
     </div>
   </div>

@@ -3,6 +3,7 @@
     "mcu/stm32-uart-dma.js",
     "fpga/fpga-verilog-intro.js",
     "fpga/fpga-vhdl-intro.js",
-    "fpga/build-uboot-cyclone-v.js"
+    "fpga/build-uboot-cyclone-v.js",
+    "fpga/test.js"
   ]
 }
