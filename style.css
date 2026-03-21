@@ -1058,6 +1058,12 @@ a { color: inherit; text-decoration: none; }
 }
 @media (max-width: 600px) { .admin-wrap { padding: 1rem; } }
 
+/* Khi cửa sổ nhỏ (chiều cao HOẶC chiều ngang): bỏ lock, cho scroll toàn trang */
+@media (max-height: 600px), (max-width: 960px) {
+  #pageAdmin { height: auto !important; overflow: visible !important; }
+  .admin-wrap { height: auto !important; overflow: visible !important; }
+}
+
 .admin-topbar {
   display: flex; align-items: center; justify-content: space-between;
   padding-bottom: 1.25rem; margin-bottom: 2rem;
@@ -1088,6 +1094,20 @@ a { color: inherit; text-decoration: none; }
     height: auto;
   }
 }
+@media (max-height: 600px) {
+  .admin-layout {
+    height: auto;
+  }
+}
+@media (max-width: 960px) {
+  .admin-layout { height: auto; }
+  .admin-form-col,
+  .admin-out-col {
+    height: auto;
+    overflow-y: visible;
+    padding-right: 0;
+  }
+}
 
 .admin-form-col,
 .admin-out-col {
@@ -1111,14 +1131,6 @@ a { color: inherit; text-decoration: none; }
 .admin-form-col::-webkit-scrollbar-thumb:hover,
 .admin-out-col::-webkit-scrollbar-thumb:hover { background: var(--text3); }
 
-@media (max-width: 960px) {
-  .admin-form-col,
-  .admin-out-col {
-    height: auto;
-    overflow-y: visible;
-    padding-right: 0;
-  }
-}
 
 .admin-section-title {
   font-family: var(--ff-disp); font-size: 1.1rem; font-weight: 700;
@@ -1631,8 +1643,8 @@ input[type="date"].field-input { font-family: var(--ff-mono); }
 
 /* ── Admin page full-height layout ────────────────────── */
 #pageAdmin {
-  height: calc(100vh - 56px);
-  overflow: hidden;
+  min-height: calc(100vh - 56px);
+  overflow: visible;
 }
 /* Admin footer */
 .admin-footer {
