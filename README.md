@@ -111,5 +111,11 @@ Mở `index.html` để đổi:
 | `tags` | ❌ | Mảng string, dùng để lọc |
 | `author` | ❌ | Tên tác giả |
 
+## Add table for acrticle
+| Header 1 | Header 2 | Header 3 |
+  | --- | :---: | ---: |
+  | Cell | Cell | Cell |
+
+
 
 python -m http.server 8080

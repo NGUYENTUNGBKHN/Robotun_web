@@ -1050,7 +1050,11 @@ a { color: inherit; text-decoration: none; }
 /* ── Admin layout ────────────────────────────────────────── */
 .admin-wrap {
   max-width: 1400px; margin: 0 auto;
-  padding: 1.5rem 2rem 4rem;
+  padding: 1.5rem 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 56px); /* full viewport minus topnav */
+  overflow: hidden;
 }
 @media (max-width: 600px) { .admin-wrap { padding: 1rem; } }
 
@@ -1075,8 +1079,46 @@ a { color: inherit; text-decoration: none; }
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
   align-items: start;
+  /* Chiều cao layout = viewport trừ topnav + topbar admin */
+  height: calc(100vh - 56px - 80px);
 }
-@media (max-width: 960px) { .admin-layout { grid-template-columns: 1fr; } }
+@media (max-width: 960px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+.admin-form-col,
+.admin-out-col {
+  height: 100%;
+  overflow-y: auto;
+  padding-right: .5rem;
+  padding-bottom: 2rem;
+  /* Scrollbar style */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+.admin-form-col::-webkit-scrollbar,
+.admin-out-col::-webkit-scrollbar { width: 5px; }
+.admin-form-col::-webkit-scrollbar-track,
+.admin-out-col::-webkit-scrollbar-track { background: transparent; }
+.admin-form-col::-webkit-scrollbar-thumb,
+.admin-out-col::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 99px;
+}
+.admin-form-col::-webkit-scrollbar-thumb:hover,
+.admin-out-col::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+@media (max-width: 960px) {
+  .admin-form-col,
+  .admin-out-col {
+    height: auto;
+    overflow-y: visible;
+    padding-right: 0;
+  }
+}
 
 .admin-section-title {
   font-family: var(--ff-disp); font-size: 1.1rem; font-weight: 700;
@@ -1517,3 +1559,85 @@ input[type="date"].field-input { font-family: var(--ff-mono); }
   border-color: var(--text3);
 }
 .btn-reset-post.hidden { display: none; }
+
+/* ── Markdown table ────────────────────────────────────── */
+.md-table-wrap {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+}
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .875rem;
+  font-family: var(--ff-body);
+}
+.md-table th {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  padding: .6rem 1rem;
+  border-bottom: 2px solid var(--border2);
+  white-space: nowrap;
+}
+.md-table td {
+  padding: .55rem 1rem;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+}
+.md-table tr:last-child td { border-bottom: none; }
+.md-table tbody tr:hover td {
+  background: var(--bg3);
+  color: var(--text);
+}
+
+/* ── Code block with copy button ───────────────────────── */
+.code-block-wrap {
+  position: relative;
+  margin: 1.25rem 0;
+}
+.code-block-wrap pre {
+  margin: 0;
+}
+.code-copy-btn {
+  position: absolute;
+  top: .55rem;
+  right: .65rem;
+  padding: .2rem .65rem;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  color: var(--text3);
+  font-size: .72rem;
+  font-family: var(--ff-body);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .15s, background .15s, color .15s, border-color .15s;
+  z-index: 2;
+}
+.code-block-wrap:hover .code-copy-btn { opacity: 1; }
+.code-copy-btn:hover {
+  background: var(--surface);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.code-copy-btn.copied {
+  opacity: 1;
+  color: #7dd3a8;
+  border-color: #7dd3a8;
+  background: rgba(125,211,168,.08);
+}
+
+/* ── Admin page full-height layout ────────────────────── */
+#pageAdmin {
+  height: calc(100vh - 56px);
+  overflow: hidden;
+}
+/* Admin footer */
+.admin-footer {
+  border-top: 1px solid var(--border);
+  padding: 1.5rem 0;
+  background: var(--bg2);
+  margin-top: 2rem;
+}

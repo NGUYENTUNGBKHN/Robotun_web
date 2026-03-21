@@ -488,6 +488,10 @@
               
               <button type="button" class="etb-btn" onclick="insertMarkdown('[', '](https://)')" title="Link">Link</button>
               <button type="button" class="etb-btn" onclick="openImageModal()" title="Image">Image</button>
+
+              <div class="etb-sep"></div>
+
+              <button type="button" class="etb-btn" onclick="insertTable()" title="Insert Table">Table</button>
             </div>
             
             <div id="fContent" class="field-input field-textarea-lg md-write-editor"
@@ -544,6 +548,13 @@
 
       </div>
     </div>
+  <footer class="admin-footer">
+    <div class="wrap footer-inner">
+      <span class="footer-brand">RoboTun</span>
+      <span class="footer-note">Embedded · Systems · Firmware · GitHub Pages</span>
+      <button class="footer-admin-btn" onclick="adminLogout()" title="Exit Admin">← Exit</button>
+    </div>
+  </footer>
   </div>
 
   <!-- ══ IMAGE UPLOAD MODAL ══ -->

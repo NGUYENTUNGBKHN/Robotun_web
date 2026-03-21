@@ -231,6 +231,8 @@ function showPage(id) {
     el.style.display = p === id ? '' : 'none';
     el.classList.toggle('page-off', p !== id);
   });
+  const footer = document.querySelector('.site-footer');
+  if (footer) footer.style.display = id === 'pageAdmin' ? 'none' : '';
 }
 
 // ── Markdown renderer ──────────────────────────────────────
@@ -274,9 +276,59 @@ function mdToHtml(md) {
     return `__IMG_TAG__alt="${alt}"src="${src}"__END_IMG__`;
   });
 
+  // Process Markdown tables
+  function parseTable(block) {
+    const lines = block.trim().split('\n');
+    if (lines.length < 2) return null;
+    // Check separator line (second line must be |---|---|)
+    if (!/^\|?\s*[-:]+[\s\|:-]*$/.test(lines[1])) return null;
+
+    const parseRow = (line) =>
+      line.replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+
+    const alignments = parseRow(lines[1]).map(c => {
+      if (/^:-+:$/.test(c)) return 'center';
+      if (/^-+:$/.test(c))  return 'right';
+      return 'left';
+    });
+
+    const headers = parseRow(lines[0]);
+    const headHtml = '<thead><tr>' +
+      headers.map((h, i) =>
+        `<th style="text-align:${alignments[i]||'left'}">${inlineMarkdown(h)}</th>`
+      ).join('') + '</tr></thead>';
+
+    const bodyRows = lines.slice(2).filter(l => l.trim());
+    const bodyHtml = '<tbody>' +
+      bodyRows.map(row =>
+        '<tr>' + parseRow(row).map((c, i) =>
+          `<td style="text-align:${alignments[i]||'left'}">${inlineMarkdown(c)}</td>`
+        ).join('') + '</tr>'
+      ).join('') + '</tbody>';
+
+    return `<div class="md-table-wrap"><table class="md-table">${headHtml}${bodyHtml}</table></div>`;
+  }
+
+  function inlineMarkdown(s) {
+    return s
+      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>');
+  }
+
+  // Replace code blocks first (protect from further processing)
+  const codeBlocks = [];
+  md = md.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, l, c) => {
+    const lang = l || 'text';
+    const escaped = esc(c.trim());
+    const html = `<div class="code-block-wrap"><button class="code-copy-btn" onclick="copyCodeBlock(this)" title="Copy code">Copy</button><pre><code class="lang-${lang}">${escaped}</code></pre></div>`;
+    const idx = codeBlocks.length;
+    codeBlocks.push(html);
+    return `__CODE_BLOCK_${idx}__`;
+  });
+
   md = md
-    .replace(/```(\w+)?\n([\s\S]*?)```/g, (_, l, c) =>
-      `<pre><code class="lang-${l || 'text'}">${esc(c.trim())}</code></pre>`)
     .replace(/^### (.+)$/gm, (_, t) => headingTag(3, t))
     .replace(/^## (.+)$/gm, (_, t) => headingTag(2, t))
     .replace(/^# (.+)$/gm, (_, t) => headingTag(2, t))
@@ -292,15 +344,28 @@ function mdToHtml(md) {
       `<a href="${escAttr(href)}" target="_blank" rel="noopener">${esc(label)}</a>`)
     .replace(/^\s*[-*] (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>[\s\S]+?<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
-    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-    .split(/\n{2,}/)
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+  // Process blocks (split by double newline)
+  md = md.split(/\n{2,}/)
     .map(b => {
       b = b.trim();
       if (!b) return '';
-      if (/^<(h[123]|ul|ol|blockquote|pre|hr|img)|^__IMG_TAG__/.test(b)) return b;
+      if (/^__CODE_BLOCK_\d+__$/.test(b)) return b;
+      if (/^<(h[123]|ul|ol|blockquote|pre|hr|img|div)|^__IMG_TAG__/.test(b)) return b;
+      // Try table parse
+      if (b.includes('|') && b.includes('\n')) {
+        const tbl = parseTable(b);
+        if (tbl) return tbl;
+      }
       return `<p>${b.replace(/\n/g, ' ')}</p>`;
     })
     .join('\n');
+
+  // Restore code blocks
+  codeBlocks.forEach((html, idx) => {
+    md = md.replace(`__CODE_BLOCK_${idx}__`, html);
+  });
 
   md = md.replace(/__IMG_TAG__alt="([^"]*)"src="([^"]*)"__END_IMG__/g,
     '<img src="$2" alt="$1">');
@@ -320,6 +385,62 @@ function mdToHtml(md) {
 function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 function escAttr(s) {
   return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+// ── Copy code block ────────────────────────────────────────
+function copyCodeBlock(btn) {
+  const code = btn.nextElementSibling?.querySelector('code');
+  if (!code) return;
+  const text = code.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ── Insert Markdown table template ────────────────────────
+function insertTable() {
+  const template =
+`| Header 1 | Header 2 | Header 3 |
+| --- | --- | --- |
+| Cell 1 | Cell 2 | Cell 3 |
+| Cell 4 | Cell 5 | Cell 6 |`;
+  const el = document.getElementById('fContent');
+  if (!el) return;
+  el.focus();
+  const sel = window.getSelection();
+  let r = sel.rangeCount ? sel.getRangeAt(0) : null;
+  if (!r || !el.contains(r.commonAncestorContainer)) {
+    r = document.createRange();
+    r.selectNodeContents(el);
+    r.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(r);
+    r = sel.getRangeAt(0);
+  }
+  r.deleteContents();
+  const frag = document.createDocumentFragment();
+  frag.appendChild(document.createTextNode('\n\n'));
+  const lines = template.split('\n');
+  lines.forEach((line, i) => {
+    const d = document.createElement('div');
+    d.textContent = line;
+    frag.appendChild(d);
+  });
+  frag.appendChild(document.createTextNode('\n\n'));
+  r.insertNode(frag);
+  syncPreview();
 }
 
 // ── Admin markdown editor (contenteditable + inline images) ─
