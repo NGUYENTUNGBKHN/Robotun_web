@@ -749,17 +749,67 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.85;
   counter-reset: section;
 }
+
+/* Content (auto generate ## / ###) */
+.art-toc {
+  margin: 0 0 2rem;
+  padding: 1rem 1.15rem 1.1rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  border-left: 3px solid var(--accent);
+}
+.art-toc-head {
+  font-family: var(--ff-mono);
+  font-size: .72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin: 0 0 0.65rem;
+}
+.art-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.art-toc-item a {
+  font-size: 0.9rem;
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  transition: border-color var(--tr), color var(--tr);
+}
+.art-toc-item a:hover {
+  color: var(--accent2);
+  border-bottom-color: var(--accent2);
+}
+.art-toc-level-3 {
+  padding-left: 1rem;
+  position: relative;
+}
+.art-toc-level-3::before {
+  content: '·';
+  position: absolute;
+  left: 0.15rem;
+  color: var(--text3);
+}
+
 .art-body h2 {
   font-family: var(--ff-disp); font-size: 1.55rem; font-weight: 700;
   margin: 3rem 0 1rem; color: var(--text);
   letter-spacing: -.02em; line-height: 1.2;
   padding-left: 1rem;
   border-left: 3px solid var(--accent);
+  scroll-margin-top: 5.5rem;
 }
 .art-body h3 {
   font-family: var(--ff-disp); font-size: 1.15rem; font-weight: 600;
   margin: 2.2rem 0 .7rem; color: var(--text);
   letter-spacing: -.01em;
+  scroll-margin-top: 5rem;
 }
 .art-body p {
   color: var(--text2); margin-bottom: 1.2rem;

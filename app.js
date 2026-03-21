@@ -25,6 +25,8 @@ const CAT_COLORS = {
 let allPosts = [];
 let prevPage = 'home';
 let prevListingState = null;
+/** Giữ hash #post/id khi bấm anchor nội bộ (Table of Contents / link trong bài) */
+let articleScrollRouteId = null;
 
 // ── Load posts from POSTS_DATA ─────────────────────────────
 function loadPosts() {
@@ -160,11 +162,30 @@ function renderCards(posts) {
     </div>`).join('');
 }
 
+// ── Anchor in article: scroll smooth, do not change hash to section (avoid breaking-spa)
+function onArticleInpageNav(e) {
+  const root = document.getElementById('articleContent');
+  const a = e.target.closest('a[href^="#"]');
+  if (!a || !root.contains(a)) return;
+  const href = a.getAttribute('href');
+  if (!href || href === '#') return;
+  if (href.startsWith('#post/') || href.startsWith('#cat/') || href.startsWith('#tag/') || href === '#all') return;
+  const elId = href.slice(1);
+  const target = document.getElementById(elId);
+  if (!target || !root.contains(target)) return;
+  e.preventDefault();
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (articleScrollRouteId) {
+    history.replaceState(history.state, '', '#post/' + articleScrollRouteId);
+  }
+}
+
 // ── Open article ───────────────────────────────────────────
 function openPost(id, from) {
   const post = allPosts.find(p => p.id === id);
   if (!post) return;
   prevPage = from || prevPage;
+  articleScrollRouteId = id;
 
   const tags = (post.tags || []).map(t => `<span class="art-tag">${t}</span>`).join('');
   document.getElementById('articleContent').innerHTML = `
@@ -188,6 +209,7 @@ function openPost(id, from) {
 }
 
 function goBackFromArticle() {
+  articleScrollRouteId = null;
   if (prevPage === 'listing' && prevListingState) {
     const s = prevListingState;
     if (s.type === 'all') navigate('all');
@@ -209,30 +231,62 @@ function showPage(id) {
 }
 
 // ── Markdown renderer ──────────────────────────────────────
+function stripHeadingPlain(raw) {
+  return String(raw)
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .trim();
+}
+
+function slugifyHeadingId(raw, usedIds) {
+  let base = stripHeadingPlain(raw)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  if (!base) base = 'muc';
+  let id = base;
+  let n = 1;
+  while (usedIds.has(id)) id = `${base}-${++n}`;
+  usedIds.add(id);
+  return id;
+}
+
 function mdToHtml(md) {
   if (!md) return '';
-  
+
+  const headingIds = new Set();
+  const toc = [];
+
+  function headingTag(level, innerMd) {
+    const id = slugifyHeadingId(innerMd, headingIds);
+    toc.push({ level, id, plain: stripHeadingPlain(innerMd) });
+    return `<h${level} id="${id}">${innerMd}</h${level}>`;
+  }
+
   // FIRST: Process images BEFORE links (because images contain ! prefix)
-  // Handle both ![alt](url) and ![alt](data:image/...)
   md = md.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
-    // Protect image tags by wrapping in a marker
     return `__IMG_TAG__alt="${alt}"src="${src}"__END_IMG__`;
   });
-  
-  // Now process regular markdown
+
   md = md
     .replace(/```(\w+)?\n([\s\S]*?)```/g, (_, l, c) =>
       `<pre><code class="lang-${l || 'text'}">${esc(c.trim())}</code></pre>`)
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
-    .replace(/^# (.+)$/gm,   '<h2>$1</h2>')
+    .replace(/^### (.+)$/gm, (_, t) => headingTag(3, t))
+    .replace(/^## (.+)$/gm, (_, t) => headingTag(2, t))
+    .replace(/^# (.+)$/gm, (_, t) => headingTag(2, t))
     .replace(/^---$/gm, '<hr>')
     .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
     .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/\[(.+?)\]\((#[^)#]+)\)/g, (_, label, href) =>
+      `<a href="${escAttr(href)}">${esc(label)}</a>`)
+    .replace(/\[(.+?)\]\((.+?)\)/g, (_, label, href) =>
+      `<a href="${escAttr(href)}" target="_blank" rel="noopener">${esc(label)}</a>`)
     .replace(/^\s*[-*] (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>[\s\S]+?<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
     .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
@@ -240,18 +294,30 @@ function mdToHtml(md) {
     .map(b => {
       b = b.trim();
       if (!b) return '';
-      // Check for image tags, code blocks, headings, etc
       if (/^<(h[123]|ul|ol|blockquote|pre|hr|img)|^__IMG_TAG__/.test(b)) return b;
       return `<p>${b.replace(/\n/g, ' ')}</p>`;
-    }).join('\n');
-  
-  // LAST: Convert protected image markers back to actual img tags
-  md = md.replace(/__IMG_TAG__alt="([^"]*)"src="([^"]*)"__END_IMG__/g, 
+    })
+    .join('\n');
+
+  md = md.replace(/__IMG_TAG__alt="([^"]*)"src="([^"]*)"__END_IMG__/g,
     '<img src="$2" alt="$1">');
-  
+
+  if (toc.length > 0) {
+    const items = toc
+      .map(
+        ({ level, id, plain }) =>
+          `<li class="art-toc-item art-toc-level-${level}"><a href="#${id}">${esc(plain)}</a></li>`
+      )
+      .join('');
+    md = `<nav class="art-toc" aria-label="Table of Contents"><p class="art-toc-head">Table of Contents</p><ul class="art-toc-list">${items}</ul></nav>${md}`;
+  }
+
   return md;
 }
 function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function escAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
 
 // ── Admin markdown editor (contenteditable + inline images) ─
 function appendPlainAsBlocks(frag, text) {
@@ -500,6 +566,7 @@ function handleRoute() {
 showPage('pageHome');
 loadPosts();
 handleRoute();
+document.getElementById('articleContent').addEventListener('click', onArticleInpageNav);
 
 /* ══════════════════════════════════════════════════════════
    ADMIN PANEL
