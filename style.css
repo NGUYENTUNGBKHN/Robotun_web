@@ -1450,3 +1450,70 @@ input[type="date"].field-input { font-family: var(--ff-mono); }
 }
 
 .hidden { display: none !important; }
+/* ── Edit post button (in article header) ──────────────── */
+.art-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .25rem .75rem;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  color: var(--text2);
+  font-size: .78rem;
+  font-family: var(--ff-body);
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+  margin-left: .5rem;
+}
+.art-edit-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Admin panel title row ─────────────────────────────── */
+.admin-section-title-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.admin-section-title-row .admin-section-title {
+  margin-bottom: 0;
+}
+.admin-edit-badge {
+  display: inline-block;
+  padding: .2rem .65rem;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 999px;
+  font-size: .74rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+.admin-edit-badge.hidden { display: none; }
+
+.btn-reset-post {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .3rem .9rem;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  color: var(--text2);
+  font-size: .8rem;
+  font-family: var(--ff-body);
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.btn-reset-post:hover {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--text3);
+}
+.btn-reset-post.hidden { display: none; }

@@ -414,7 +414,11 @@
 
         <!-- LEFT: Form nhập bài -->
         <div class="admin-form-col">
-          <h2 class="admin-section-title">✍ New Article</h2>
+          <div class="admin-section-title-row">
+            <h2 class="admin-section-title" id="adminPanelTitle">✚ New Article</h2>
+            <span class="admin-edit-badge hidden" id="adminEditBadge">✏ Editing</span>
+            <button class="btn-reset-post hidden" id="adminResetBtn" onclick="resetToNewPost()" title="Clear and create new article">＋ New</button>
+          </div>
 
           <div class="field-group">
             <label class="field-label">Article ID <span class="field-req">*</span></label>
@@ -494,7 +498,7 @@
             <div id="fPreview" class="field-preview art-body hidden"></div>
           </div>
 
-          <button class="btn-generate" onclick="generateFile()">
+          <button class="btn-generate" id="adminGenerateBtn" onclick="generateFile()">
             <span>⬇ Generate file & guide to add to blog</span>
           </button>
         </div>

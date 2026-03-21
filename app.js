@@ -27,6 +27,8 @@ let prevPage = 'home';
 let prevListingState = null;
 /** Giữ hash #post/id khi bấm anchor nội bộ (Table of Contents / link trong bài) */
 let articleScrollRouteId = null;
+/** ID bài đang được edit (null = đang tạo mới) */
+let editingPostId = null;
 
 // ── Load posts from POSTS_DATA ─────────────────────────────
 function loadPosts() {
@@ -197,6 +199,7 @@ function openPost(id, from) {
         <span>📅 ${fmtDate(post.date)}</span>
         <span>⏱ ${readTime(post.content)} min read</span>
         ${post.author ? `<span>✍️ ${post.author}</span>` : ''}
+        <button class="art-edit-btn" onclick="openEditPost('${post.id}')" title="Edit this post">✏ Edit</button>
       </div>
     </header>
     <div class="art-body">${mdToHtml(post.content)}</div>`;
@@ -603,6 +606,12 @@ function checkAdminPass() {
   const val = document.getElementById('adminPassInput').value;
   if (val === ADMIN_PASSWORD) {
     closeAdminModal();
+    const pendingId = document.getElementById('adminPassInput').dataset.pendingEditId;
+    if (pendingId) {
+      document.getElementById('adminPassInput').dataset.pendingEditId = '';
+      const post = allPosts.find(p => p.id === pendingId);
+      if (post) { loadPostIntoEditor(post); return; }
+    }
     openAdminPage();
   } else {
     const err = document.getElementById('modalError');
@@ -627,6 +636,10 @@ function openAdminPage() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   document.title = 'Admin — RoboTun';
 
+  // Reset edit mode
+  editingPostId = null;
+  updateAdminEditMode(false);
+
   // Reset images for new article
   uploadedImages = {};
   imageRegistry = {};
@@ -642,6 +655,97 @@ function openAdminPage() {
       `<button class="tag-preset" onclick="addTag('${t}')">${t}</button>`
     ).join('')}</span>`
   ).join('');
+}
+
+// ── Edit existing post ────────────────────────────────────
+function openEditPost(id) {
+  const post = allPosts.find(p => p.id === id);
+  if (!post) return;
+
+  // Check admin password first
+  document.getElementById('adminModal').classList.remove('modal-hidden');
+  document.getElementById('adminPassInput').value = '';
+  document.getElementById('modalError').textContent = '';
+  // Store pending edit id
+  document.getElementById('adminPassInput').dataset.pendingEditId = id;
+  setTimeout(() => document.getElementById('adminPassInput').focus(), 100);
+}
+
+function loadPostIntoEditor(post) {
+  editingPostId = post.id;
+
+  showPage('pageAdmin');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.title = 'Edit: ' + post.title + ' — RoboTun';
+
+  // Reset images
+  uploadedImages = {};
+  imageRegistry = {};
+
+  // Fill fields
+  document.getElementById('fId').value     = post.id;
+  document.getElementById('fTitle').value  = post.title;
+  document.getElementById('fExcerpt').value = post.excerpt || '';
+  document.getElementById('fDate').value   = post.date || '';
+  document.getElementById('fAuthor').value = post.author || '';
+  document.getElementById('fTags').value   = (post.tags || []).join(', ');
+
+  // Fill content editor
+  setEditorMarkdown(post.content || '');
+  syncPreview();
+  updateAdminHint();
+
+  // Build tag presets
+  const presetsEl = document.getElementById('tagPresets');
+  presetsEl.innerHTML = Object.entries(TAG_SUGGESTIONS).map(([group, tags]) =>
+    `<span class="tag-preset-group">${tags.map(t =>
+      `<button class="tag-preset" onclick="addTag('${t}')">${t}</button>`
+    ).join('')}</span>`
+  ).join('');
+
+  updateAdminEditMode(true);
+}
+
+function updateAdminEditMode(isEdit) {
+  const badge   = document.getElementById('adminEditBadge');
+  const genBtn  = document.getElementById('adminGenerateBtn');
+  const resetBtn = document.getElementById('adminResetBtn');
+  const title   = document.getElementById('adminPanelTitle');
+
+  if (isEdit) {
+    badge.classList.remove('hidden');
+    resetBtn.classList.remove('hidden');
+    title.textContent = '✏ Edit Article';
+    genBtn.innerHTML  = '<span>⬇ Generate updated file</span>';
+  } else {
+    badge.classList.add('hidden');
+    resetBtn.classList.add('hidden');
+    title.textContent = '✚ New Article';
+    genBtn.innerHTML  = '<span>⬇ Generate file & guide to add to blog</span>';
+  }
+}
+
+function resetToNewPost() {
+  editingPostId = null;
+  updateAdminEditMode(false);
+
+  // Clear all fields
+  document.getElementById('fId').value = '';
+  document.getElementById('fTitle').value = '';
+  document.getElementById('fExcerpt').value = '';
+  document.getElementById('fDate').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('fAuthor').value = '';
+  document.getElementById('fTags').value = '';
+  setEditorMarkdown('');
+
+  // Reset output
+  document.getElementById('outputBox').classList.remove('hidden');
+  document.getElementById('outputReady').classList.add('hidden');
+
+  uploadedImages = {};
+  imageRegistry = {};
+  updateAdminHint();
+  syncPreview();
 }
 
 function updateAdminHint() {
