@@ -69,7 +69,7 @@ Note: SoC EDS is no longer required to generate the handoff folder for Cyclone V
 
 
 Starting with SoC EDS Pro version 19.3 and SoC EDS Standard version 19.1, the following changes were make:
-- The bootloader source code was removed from SoC EDS. Instead, the user needs to clone the git trees from [https://github.com/altera-opensource/u-boot-socfpga](https://https://github.com/altera-opensource/u-boot-socfpga). 
+- The bootloader source code was removed from SoC EDS. Instead, the user needs to clone the git trees from [https://github.com/altera-opensource/u-boot-socfpga](https://github.com/altera-opensource/u-boot-socfpga). 
 
 
 
@@ -139,7 +139,7 @@ Starting with Quartus Pro 20.3, the SoC EDS was discontinued, and the functional
 
 
 
-The official Intel SOCFPGA U-Boot repository is located at [https://github.com/altera-opensource/u-boot-socfpga.](https://https://github.com/altera-opensource/u-boot-socfpga)
+The official Intel SOCFPGA U-Boot repository is located at [https://github.com/altera-opensource/u-boot-socfpga.](https://github.com/altera-opensource/u-boot-socfpga)
 Note:
 - A "RC" labeled branch is for internal active development use and customer early access without official customer support.
 
