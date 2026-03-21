@@ -253,6 +253,158 @@ function mdToHtml(md) {
 }
 function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
+// ── Admin markdown editor (contenteditable + inline images) ─
+function appendPlainAsBlocks(frag, text) {
+  if (!text) return;
+  const lines = text.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const d = document.createElement('div');
+    if (lines[i].length) d.textContent = lines[i];
+    else d.appendChild(document.createElement('br'));
+    frag.appendChild(d);
+  }
+}
+
+function markdownToEditorFragment(md) {
+  const frag = document.createDocumentFragment();
+  const re = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  let last = 0;
+  let m;
+  while ((m = re.exec(md)) !== null) {
+    if (m.index > last) appendPlainAsBlocks(frag, md.slice(last, m.index));
+    const wrap = document.createElement('span');
+    wrap.className = 'md-embed-img';
+    wrap.contentEditable = 'false';
+    const img = document.createElement('img');
+    img.src = m[2];
+    img.alt = String(m[1] || '').replace(/[\[\]]/g, '');
+    img.loading = 'lazy';
+    wrap.appendChild(img);
+    frag.appendChild(wrap);
+    last = m.lastIndex;
+  }
+  if (last < md.length) appendPlainAsBlocks(frag, md.slice(last));
+  return frag;
+}
+
+function editorToMarkdown(el) {
+  let out = '';
+  function walkEmbed(node) {
+    const img = node.querySelector('img');
+    if (img) {
+      const alt = (img.getAttribute('alt') || '').replace(/[\[\]]/g, '');
+      out += `![${alt}](${img.getAttribute('src') || ''})`;
+    }
+  }
+  function walkInline(node) {
+    for (const c of node.childNodes) {
+      if (c.nodeType === Node.TEXT_NODE) {
+        out += c.textContent;
+        continue;
+      }
+      if (c.nodeType !== Node.ELEMENT_NODE) continue;
+      if (c.classList && c.classList.contains('md-embed-img')) {
+        walkEmbed(c);
+        continue;
+      }
+      if (c.tagName === 'BR') {
+        out += '\n';
+        continue;
+      }
+      walkInline(c);
+    }
+  }
+  function walkBlocks(container) {
+    for (const n of container.childNodes) {
+      if (n.nodeType === Node.TEXT_NODE) {
+        out += n.textContent;
+        continue;
+      }
+      if (n.nodeType !== Node.ELEMENT_NODE) continue;
+      if (n.classList && n.classList.contains('md-embed-img')) {
+        walkEmbed(n);
+        continue;
+      }
+      const tag = n.tagName;
+      if (tag === 'DIV' || tag === 'P') {
+        walkInline(n);
+        out += '\n';
+      } else {
+        walkInline(n);
+      }
+    }
+  }
+  walkBlocks(el);
+  return out.replace(/\n+$/, '');
+}
+
+function getEditorMarkdown() {
+  const el = document.getElementById('fContent');
+  if (!el) return '';
+  if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') return el.value;
+  return editorToMarkdown(el);
+}
+
+function setEditorMarkdown(md) {
+  const el = document.getElementById('fContent');
+  if (!el) return;
+  if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+    el.value = md;
+    return;
+  }
+  el.innerHTML = '';
+  const raw = md || '';
+  if (!raw.trim()) {
+    const d = document.createElement('div');
+    d.appendChild(document.createElement('br'));
+    el.appendChild(d);
+    updateContentEditorEmptyAttr();
+    return;
+  }
+  el.appendChild(markdownToEditorFragment(raw));
+  updateContentEditorEmptyAttr();
+}
+
+function updateContentEditorEmptyAttr() {
+  const el = document.getElementById('fContent');
+  if (!el || el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') return;
+  el.setAttribute('data-empty', getEditorMarkdown().trim() === '' ? '1' : '');
+}
+
+function ceInsertImageEmbed(el, base64, name) {
+  const safeAlt = String(name || 'image').replace(/[\[\]]/g, '');
+  el.focus();
+  const sel = window.getSelection();
+  let r = sel.rangeCount ? sel.getRangeAt(0) : null;
+  if (!r || !el.contains(r.commonAncestorContainer)) {
+    r = document.createRange();
+    r.selectNodeContents(el);
+    r.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(r);
+    r = sel.getRangeAt(0);
+  }
+  r.deleteContents();
+  const wrap = document.createElement('span');
+  wrap.className = 'md-embed-img';
+  wrap.contentEditable = 'false';
+  const img = document.createElement('img');
+  img.src = base64;
+  img.alt = safeAlt;
+  wrap.appendChild(img);
+  const after = document.createTextNode('\n\n');
+  const frag = document.createDocumentFragment();
+  frag.appendChild(document.createTextNode('\n\n'));
+  frag.appendChild(wrap);
+  frag.appendChild(after);
+  r.insertNode(frag);
+  const nr = document.createRange();
+  nr.setStart(after, after.length);
+  nr.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(nr);
+}
+
 // ── Helpers ────────────────────────────────────────────────
 function fmtDate(d) {
   if (!d) return '';
@@ -423,8 +575,6 @@ function openAdminPage() {
       `<button class="tag-preset" onclick="addTag('${t}')">${t}</button>`
     ).join('')}</span>`
   ).join('');
-
-  updument.title = 'RoboTun — Embedded & Systems';
 }
 
 function updateAdminHint() {
@@ -461,7 +611,7 @@ function switchTab(tab) {
     tabW.classList.add('active');
     tabP.classList.remove('active');
   } else {
-    previewEl.innerHTML = mdToHtml(writeEl.value);
+    previewEl.innerHTML = mdToHtml(getEditorMarkdown());
     writeEl.classList.add('hidden');
     previewEl.classList.remove('hidden');
     tabW.classList.remove('active');
@@ -471,24 +621,31 @@ function switchTab(tab) {
 
 // ── Insert markdown with toolbar ────────────────────────
 function insertMarkdown(openTag, closeTag = '') {
-  const textarea = document.getElementById('fContent');
-  if (!textarea) return;
-  
-  textarea.focus();
-  
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  const selectedText = textarea.value.substring(start, end);
-  const beforeText = textarea.value.substring(0, start);
-  const afterText = textarea.value.substring(end);
-  
-  // If text is selected, wrap it; otherwise insert tags
+  const el = document.getElementById('fContent');
+  if (!el) return;
+
+  el.focus();
+  const sel = window.getSelection();
+  let r = sel.rangeCount ? sel.getRangeAt(0) : null;
+  if (!r || !el.contains(r.commonAncestorContainer)) {
+    r = document.createRange();
+    r.selectNodeContents(el);
+    r.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(r);
+    r = sel.getRangeAt(0);
+  }
+
+  const selectedText = r.toString();
+
+  let insert;
+  let selStart;
+  let selEnd;
   if (selectedText) {
-    textarea.value = beforeText + openTag + selectedText + closeTag + afterText;
-    textarea.selectionStart = start + openTag.length;
-    textarea.selectionEnd = start + openTag.length + selectedText.length;
+    insert = openTag + selectedText + closeTag;
+    selStart = openTag.length;
+    selEnd = openTag.length + selectedText.length;
   } else {
-    // Insert placeholder text
     let placeholder = 'text';
     if (openTag.includes('#')) placeholder = 'Heading';
     if (openTag.includes('**')) placeholder = 'bold text';
@@ -498,49 +655,98 @@ function insertMarkdown(openTag, closeTag = '') {
     if (openTag.includes('![')) placeholder = 'alt text';
     if (openTag.includes('>')) placeholder = 'quote text';
     if (openTag.includes('-')) placeholder = 'list item';
-    
-    const fullText = openTag + placeholder + closeTag;
-    textarea.value = beforeText + fullText + afterText;
-    
-    // Select the placeholder text
-    const placeholderStart = start + openTag.length;
-    textarea.selectionStart = placeholderStart;
-    textarea.selectionEnd = placeholderStart + placeholder.length;
+    insert = openTag + placeholder + closeTag;
+    selStart = openTag.length;
+    selEnd = openTag.length + placeholder.length;
   }
-  
-  // Trigger preview update
+
+  r.deleteContents();
+  const tn = document.createTextNode(insert);
+  r.insertNode(tn);
+  const nr = document.createRange();
+  nr.setStart(tn, selStart);
+  nr.setEnd(tn, selEnd);
+  sel.removeAllRanges();
+  sel.addRange(nr);
+
   syncPreview();
 }
 
 function syncPreview() {
-  // Only update preview if preview tab is active
   const previewEl = document.getElementById('fPreview');
   if (!previewEl.classList.contains('hidden')) {
-    previewEl.innerHTML = mdToHtml(document.getElementById('fContent').value);
+    previewEl.innerHTML = mdToHtml(getEditorMarkdown());
   }
   updateAdminHint();
+  updateContentEditorEmptyAttr();
 }
 
 // ── Image upload helpers ───────────────────────────────────
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 let uploadedImages = {};
 
-function handleImageDrop(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  e.dataTransfer.dropEffect = 'copy';
-  const uploadArea = document.getElementById('imageUploadArea');
-  if (uploadArea) {
-    uploadArea.classList.remove('dragover');
+function fileToDataUrlImage(file, onOk, onFail) {
+  if (!file || file.size === 0) {
+    if (onFail) onFail('not-image');
+    return;
   }
-  
-  const files = Array.from(e.dataTransfer.files || []).filter(f => f.type.startsWith('image/'));
-  console.log(`Drop: ${files.length} image(s)`);
-  processImages(files);
+  const mime = (file.type || '').toLowerCase();
+  // Pasted clipboard files often have an empty type even when bytes are PNG/JPEG
+  if (mime && !mime.startsWith('image/')) {
+    if (onFail) onFail('not-image');
+    return;
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    if (onFail) onFail('too-large');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => onOk(reader.result, file.name || 'image');
+  reader.onerror = () => onFail && onFail('read');
+  reader.readAsDataURL(file);
+}
+
+function clipboardDefaultName(mime) {
+  const m = (mime || '').toLowerCase();
+  if (m.includes('jpeg')) return 'paste.jpg';
+  if (m.includes('gif')) return 'paste.gif';
+  if (m.includes('webp')) return 'paste.webp';
+  return 'paste.png';
+}
+
+/** Pasted images: prefer files list (Chromium), then items; fix empty File.type from item.type */
+function clipboardImageFileFromPasteEvent(e) {
+  const cd = e.clipboardData;
+  if (!cd) return null;
+
+  if (cd.files && cd.files.length) {
+    for (let i = 0; i < cd.files.length; i++) {
+      const f = cd.files[i];
+      if (!f || !f.size) continue;
+      const t = (f.type || '').toLowerCase();
+      if (t.startsWith('image/')) return f;
+    }
+  }
+
+  const items = cd.items;
+  if (!items) return null;
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    if (it.kind !== 'file') continue;
+    const blob = it.getAsFile();
+    if (!blob || !blob.size) continue;
+    const itemType = (it.type || '').toLowerCase();
+    const blobType = (blob.type || '').toLowerCase();
+    if (blobType.startsWith('image/')) return blob;
+    if (itemType.startsWith('image/')) {
+      return new File([blob], clipboardDefaultName(itemType), { type: it.type || 'image/png' });
+    }
+  }
+  return null;
 }
 
 function handleImageSelect(e) {
   const files = Array.from(e.target.files || []);
-  console.log(`Select: ${files.length} file(s)`);
   processImages(files);
 }
 
@@ -549,7 +755,6 @@ function openImageModal() {
   const modal = document.getElementById('imageModal');
   if (modal) {
     modal.classList.remove('modal-hidden');
-    setupImageUpload();
   }
 }
 
@@ -560,98 +765,137 @@ function closeImageModal() {
   }
 }
 
-// Close modal when clicking outside
+let imageUploadEventsBound = false;
+
+function setupImageUpload() {
+  if (imageUploadEventsBound) return;
+  const uploadArea = document.getElementById('imageUploadArea');
+  const imageInput = document.getElementById('imageInput');
+  if (!uploadArea || !imageInput) return;
+
+  let dragDepth = 0;
+
+  uploadArea.addEventListener('click', (ev) => {
+    if (ev.target.closest && ev.target.closest('.image-preview-remove')) return;
+    imageInput.click();
+  });
+
+  uploadArea.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDepth++;
+    uploadArea.classList.add('dragover');
+  });
+
+  uploadArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0) uploadArea.classList.remove('dragover');
+  });
+
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'copy';
+  });
+
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDepth = 0;
+    uploadArea.classList.remove('dragover');
+    const files = Array.from(e.dataTransfer.files || []).filter(f => f.type.startsWith('image/'));
+    processImages(files);
+  });
+
+  imageInput.addEventListener('change', (e) => {
+    handleImageSelect(e);
+    e.target.value = '';
+  });
+
+  imageUploadEventsBound = true;
+}
+
+let contentPasteBound = false;
+
+function setupContentImagePaste() {
+  if (contentPasteBound) return;
+  contentPasteBound = true;
+  // Capture on document so paste is handled even if the textarea does not get the event first (some browsers / embed cases)
+  document.addEventListener(
+    'paste',
+    (e) => {
+      const ta = document.getElementById('fContent');
+      if (!ta || document.activeElement !== ta) return;
+      const file = clipboardImageFileFromPasteEvent(e);
+      if (file) {
+        e.preventDefault();
+        e.stopPropagation();
+        fileToDataUrlImage(
+          file,
+          (base64, name) => {
+            ceInsertImageEmbed(ta, base64, name);
+            syncPreview();
+          },
+          (reason) => {
+            if (reason === 'too-large') {
+              const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+              alert(`⚠ Image too large (${sizeMB}MB). Max 5MB.`);
+            }
+          }
+        );
+        return;
+      }
+      const text = e.clipboardData && e.clipboardData.getData('text/plain');
+      if (text && /!\[[^\]]*\]\(data:/.test(text)) {
+        const t = text.trim();
+        const m = t.match(/^!\[([^\]]*)\]\((data:[^)]+)\)$/);
+        if (m) {
+          e.preventDefault();
+          e.stopPropagation();
+          ceInsertImageEmbed(ta, m[2], m[1] || 'image');
+          syncPreview();
+        }
+      }
+    },
+    true
+  );
+}
+
+// Close modal when clicking outside; bind upload & paste once
 document.addEventListener('DOMContentLoaded', () => {
   const modal = document.getElementById('imageModal');
   if (modal) {
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        closeImageModal();
-      }
+      if (e.target === modal) closeImageModal();
     });
   }
+  setupImageUpload();
+  setupContentImagePaste();
+  updateContentEditorEmptyAttr();
 });
 
-// Setup image upload events when DOM is ready
-function setupImageUpload() {
-  const uploadArea = document.getElementById('imageUploadArea');
-  const imageInput = document.getElementById('imageInput');
-  
-  if (!uploadArea || !imageInput) {
-    console.warn('Image upload elements not found');
-    return;
-  }
-  
-  // Drag over
-  uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    uploadArea.classList.add('dragover');
-  });
-
-  // Drag leave
-  uploadArea.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    uploadArea.classList.remove('dragover');
-  });
-
-  // Drop
-  uploadArea.addEventListener('drop', handleImageDrop);
-
-  // Click to select
-  uploadArea.addEventListener('click', () => {
-    imageInput.click();
-  });
-
-  // File input change
-  imageInput.addEventListener('change', handleImageSelect);
-  
-  console.log('Image upload events setup complete');
-}
-
 function processImages(files) {
-  if (!files || files.length === 0) {
-    console.warn('No files to process');
-    return;
-  }
-  
-  console.log(`Processing ${files.length} file(s)...`);
-  
+  if (!files || files.length === 0) return;
+
   files.forEach(file => {
-    // Check if file is image
-    if (!file.type.startsWith('image/')) {
-      console.warn(`Skipped non-image: ${file.name} (type: ${file.type})`);
-      return;
-    }
-    
-    // Check file size (max 5MB to avoid huge base64 strings)
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-      console.warn(`File too large: ${file.name} (${sizeMB}MB, max 5MB)`);
-      alert(`⚠ Image too large: ${file.name}\nMax size: 5MB`);
-      return;
-    }
-    
-    const reader = new FileReader();
-    
-    reader.onload = (event) => {
-      try {
-        const base64 = event.target.result;
+    fileToDataUrlImage(
+      file,
+      (base64, name) => {
         const imageId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        uploadedImages[imageId] = { base64, name: file.name };
-        console.log(`✓ Loaded: ${file.name} (${file.size} bytes → ${base64.length} chars in base64)`);
+        uploadedImages[imageId] = { base64, name };
         renderImagePreview();
-      } catch (error) {
-        console.error(`Error loading ${file.name}:`, error);
+      },
+      (reason) => {
+        if (reason === 'not-image') {
+          console.warn(`Skipped non-image: ${file.name}`);
+        } else if (reason === 'too-large') {
+          const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+          alert(`⚠ Image too large: ${file.name}\n(${sizeMB}MB — max 5MB)`);
+        }
       }
-    };
-    
-    reader.onerror = () => {
-      console.error(`FileReader error for ${file.name}`);
-    };
-    
-    reader.readAsDataURL(file);
+    );
   });
 }
 
@@ -693,27 +937,24 @@ function insertImageToContent() {
     console.warn('No images to insert');
     return;
   }
-  
+
   const contentEl = document.getElementById('fContent');
   if (!contentEl) {
     console.error('Content element not found');
     return;
   }
-  
-  let markdown = '\n\n';
-  
+
   Object.values(uploadedImages).forEach((img, index) => {
-    markdown += `![${img.name}](${img.base64})\n\n`;
+    ceInsertImageEmbed(contentEl, img.base64, img.name);
     console.log(`Added image ${index + 1}: ${img.name}`);
   });
-  
-  contentEl.value += markdown;
+
   console.log(`Inserted ${Object.keys(uploadedImages).length} image(s)`);
-  
+
   uploadedImages = {};
   renderImagePreview();
   syncPreview();
-  
+
   console.log('Image preview cleared');
 }
 
@@ -725,7 +966,7 @@ function generateFile() {
   const date    = document.getElementById('fDate').value;
   const author  = document.getElementById('fAuthor').value.trim() || 'Author';
   const tagsRaw = document.getElementById('fTags').value;
-  const content = document.getElementById('fContent').value;
+  const content = getEditorMarkdown();
 
   // Validate
   const missing = [];
@@ -733,7 +974,7 @@ function generateFile() {
   if (!title)   missing.push('Title');
   if (!excerpt) missing.push('Short Description');
   if (!tagsRaw) missing.push('Tags');
-  if (!content) missing.push('Content');
+  if (!content.trim()) missing.push('Content');
 
   if (missing.length) {
     alert('⚠ Please fill in: ' + missing.join(', '));

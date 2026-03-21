@@ -1066,6 +1066,42 @@ input[type="date"].field-input { font-family: var(--ff-mono); }
   border-top: none;
 }
 
+/* Admin write: contenteditable with inline image embeds (markdown kept in memory on export) */
+.md-write-editor {
+  overflow-y: auto;
+  outline: none;
+  cursor: text;
+}
+.md-write-editor:focus {
+  border-color: var(--accent);
+  background: var(--bg2);
+}
+.md-write-editor[data-empty="1"]::before {
+  content: attr(data-placeholder);
+  color: var(--text3);
+  pointer-events: none;
+  white-space: pre-wrap;
+}
+.md-embed-img {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 100%;
+  margin: 0.35rem 0;
+  line-height: 0;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  overflow: hidden;
+}
+.md-embed-img img {
+  display: block;
+  max-width: 100%;
+  max-height: 220px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
 .field-label-row {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: .4rem;
@@ -1153,7 +1189,11 @@ input[type="date"].field-input { font-family: var(--ff-mono); }
   background: var(--bg3);
   text-align: center;
   cursor: pointer;
-  transition: all var(--tr);
+  transition:
+    border-color 0.22s ease,
+    background 0.22s ease,
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
   position: relative;
 }
 
@@ -1165,6 +1205,17 @@ input[type="date"].field-input { font-family: var(--ff-mono); }
 .image-upload-area.dragover {
   border-color: var(--accent);
   background: var(--accent-dim);
+  transform: scale(1.012);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.image-modal-body kbd {
+  font-family: var(--ff-mono);
+  font-size: 0.72em;
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .image-input-hidden {
@@ -1202,6 +1253,18 @@ input[type="date"].field-input { font-family: var(--ff-mono); }
   overflow: hidden;
   background: var(--bg2);
   border: 1px solid var(--border);
+  animation: imagePreviewIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes imagePreviewIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .image-preview-item img {

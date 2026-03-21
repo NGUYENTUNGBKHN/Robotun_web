@@ -486,15 +486,11 @@
               <button type="button" class="etb-btn" onclick="openImageModal()" title="Image">Image</button>
             </div>
             
-            <textarea id="fContent" class="field-input field-textarea-lg" rows="25"
-                      placeholder="## Title
-
-Markdown content here...
-
-```c
-// code
-```"
-                      oninput="syncPreview()"></textarea>
+            <div id="fContent" class="field-input field-textarea-lg md-write-editor"
+                 contenteditable="true" spellcheck="false" role="textbox" aria-multiline="true"
+                 aria-label="Article markdown — images show inline; full data is kept for export"
+                 data-placeholder="## Title&#10;&#10;Markdown here… Paste images with Ctrl+V — they appear as pictures, not long text."
+                 oninput="syncPreview()"><div><br></div></div>
             <div id="fPreview" class="field-preview art-body hidden"></div>
           </div>
 
@@ -555,14 +551,14 @@ Markdown content here...
       </div>
       
       <div class="image-modal-body">
-        <div class="image-upload-area" id="imageUploadArea" ondrop="handleImageDrop(event)" ondragover="event.preventDefault()" ondragleave="event.target.classList.remove('dragover')">
-          <input type="file" id="imageInput" class="image-input-hidden" multiple accept="image/*" onchange="handleImageSelect(event)">
+        <div class="image-upload-area" id="imageUploadArea">
+          <input type="file" id="imageInput" class="image-input-hidden" multiple accept="image/*">
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
             <path d="M8 8h32v24l-8-8-8 8-8-6-8 8V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             <circle cx="28" cy="16" r="3" fill="currentColor"/>
           </svg>
           <p class="upload-text">Drag images here or <strong>click to select</strong></p>
-          <p class="upload-hint">Images will be converted to Base64 (embedded in article)</p>
+          <p class="upload-hint">Images become Base64 in the article. In the Write tab, paste screenshots with <kbd>Ctrl</kbd>+<kbd>V</kbd>.</p>
         </div>
         
         <div class="image-preview-list" id="imagePreviewList"></div>
