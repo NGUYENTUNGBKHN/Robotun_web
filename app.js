@@ -328,10 +328,15 @@ function mdToHtml(md) {
     return `__CODE_BLOCK_${idx}__`;
   });
 
+  // Parse headings line-by-line to preserve document order in toc[]
+  md = md.split('\n').map(line => {
+    const h3 = line.match(/^### (.+)$/);  if (h3) return headingTag(3, h3[1]);
+    const h2 = line.match(/^## (.+)$/);   if (h2) return headingTag(2, h2[1]);
+    const h1 = line.match(/^# (.+)$/);    if (h1) return headingTag(1, h1[1]);
+    return line;
+  }).join('\n');
+
   md = md
-    .replace(/^### (.+)$/gm, (_, t) => headingTag(3, t))
-    .replace(/^## (.+)$/gm, (_, t) => headingTag(2, t))
-    .replace(/^# (.+)$/gm, (_, t) => headingTag(2, t))
     .replace(/^---$/gm, '<hr>')
     .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
     .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
@@ -352,7 +357,7 @@ function mdToHtml(md) {
       b = b.trim();
       if (!b) return '';
       if (/^__CODE_BLOCK_\d+__$/.test(b)) return b;
-      if (/^<(h[123]|ul|ol|blockquote|pre|hr|img|div)|^__IMG_TAG__/.test(b)) return b;
+      if (/^<(h[1-3]|ul|ol|blockquote|pre|hr|img|div)|^__IMG_TAG__/.test(b)) return b;
       // Try table parse
       if (b.includes('|') && b.includes('\n')) {
         const tbl = parseTable(b);
