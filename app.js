@@ -1,9 +1,13 @@
-/* ── DevNotes Blog Engine v3 — Embedded & Systems ── */
+/* ── RoboTun Blog Engine v3 — Embedded & Systems ── */
 
 const CATEGORIES = {
   linux:  { label: 'Embedded Linux', tags: ['linux','embedded-linux','kernel','driver','device-tree','buildroot','yocto','uboot','u-boot','rootfs','dts','dtb','busybox','systemd','cross-compile'] },
   mcu:    { label: 'Embedded MCU',   tags: ['mcu','stm32','esp32','arduino','avr','arm','cortex','rtos','freertos','hal','bare-metal','gpio','uart','spi','i2c','adc','pwm','interrupt','dma','firmware'] },
   fpga:   { label: 'FPGA',           tags: ['fpga','vhdl','verilog','systemverilog','vivado','quartus','xilinx','altera','ip-core','rtl','synthesis','timing','hdl','pynq'] },
+  'fpga/verilog': { label: 'FPGA/Verilog', tags: ['verilog','systemverilog','vivado','xilinx','ip-core','rtl','synthesis','timing','hdl'] },
+  'fpga/vhdl':    { label: 'FPGA/VHDL',   tags: ['vhdl','quartus','altera','rtl','synthesis','timing','hdl'] },
+  'fpga/board/cyclone-v': { label: 'FPGA/Board/Cyclone-V', tags: ['cyclone','altera','quartus','fpga','rtl','hdl'] },
+  'fpga/board/zynq-7':    { label: 'FPGA/Board/Zynq-Z7-10', tags: ['zynq','xilinx','vivado','fpga','rtl','hdl','arm'] },
   robot:  { label: 'Robot',          tags: ['robot','ros','ros2','robotics','kinematics','slam','path-planning','sensor-fusion','lidar','motor','servo','pid','navigation','gazebo'] },
   algo:   { label: 'Algorithm',      tags: ['algorithm','algo','data-structure','sorting','graph','dynamic-programming','bit-manipulation','complexity','leetcode','dsa'] },
   python: { label: 'Python',         tags: ['python','numpy','opencv','serial','automation','script','matplotlib','pandas','ctypes','pyserial','flask','raspberry-pi'] },
@@ -13,8 +17,9 @@ const CATEGORIES = {
 
 // Category color mapping (matches CSS vars)
 const CAT_COLORS = {
-  linux: '--c-linux', mcu: '--c-mcu', fpga: '--c-fpga', robot: '--c-robot',
-  algo: '--c-algo', python: '--c-python', make: '--c-make', debug: '--c-debug',
+  linux: '--c-linux', mcu: '--c-mcu', fpga: '--c-fpga', 'fpga/verilog': '--c-fpga', 'fpga/vhdl': '--c-fpga',
+  'fpga/board': '--c-fpga', 'fpga/board/cyclone-v': '--c-fpga', 'fpga/board/zynq-7': '--c-fpga',
+  robot: '--c-robot', algo: '--c-algo', python: '--c-python', make: '--c-make', debug: '--c-debug',
 };
 
 let allPosts = [];
@@ -25,7 +30,7 @@ let prevListingState = null;
 function loadPosts() {
   if (typeof window.POSTS_DATA === 'undefined' || !window.POSTS_DATA.length) {
     document.getElementById('latestList').innerHTML =
-      '<p style="color:var(--text3);padding:2rem 0;font-size:.85rem">Chưa có bài viết. Thêm bài vào <code>posts/posts.js</code>.</p>';
+      '<p style="color:var(--text3);padding:2rem 0;font-size:.85rem">No posts yet. Add posts to <code>posts/posts.js</code>.</p>';
     return;
   }
   allPosts = [...window.POSTS_DATA].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -37,11 +42,11 @@ function loadPosts() {
 function updateCounts() {
   Object.keys(CATEGORIES).forEach(cat => {
     document.querySelectorAll(`.cat-cnt[data-cat="${cat}"]`).forEach(el => {
-      el.textContent = getByCategory(cat).length + ' bài viết';
+      el.textContent = getByCategory(cat).length + ' article';
     });
   });
   const tot = document.getElementById('totalCount');
-  if (tot) tot.textContent = allPosts.length + ' bài viết';
+  if (tot) tot.textContent = allPosts.length + ' article';
 }
 
 function getByCategory(cat) {
@@ -75,15 +80,19 @@ function navigate(type, value) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (type === 'home') {
     showPage('pageHome');
-    document.title = 'DevNotes — Embedded & Systems';
+    document.title = 'RoboTun — Embedded & Systems';
     history.pushState({}, '', location.pathname);
   } else if (type === 'all') {
     prevListingState = { type: 'all' };
-    showListing('Tất cả bài viết', allPosts, null);
+    showListing('All Posts', allPosts, null);
     history.pushState({ type: 'all' }, '', '#all');
   } else if (type === 'category') {
     const posts = getByCategory(value);
-    const label = CATEGORIES[value]?.label || value;
+    let label = CATEGORIES[value]?.label || value;
+    // Format fpga-verilog → fpga/verilog
+    // if (value.includes('-')) {
+    //   label = value.replace('-', '/');
+    // }
     prevListingState = { type: 'category', value };
     showListing(label, posts, value);
     history.pushState({ type: 'category', value }, '', '#cat/' + value);
@@ -100,8 +109,8 @@ function navigate(type, value) {
 function showListing(title, posts, activeCat) {
   prevPage = 'listing';
   document.getElementById('listingTitle').textContent = title;
-  document.getElementById('listingCount').textContent = posts.length + ' bài';
-  document.title = title + ' — DevNotes';
+  document.getElementById('listingCount').textContent = posts.length + ' posts';
+  document.title = title + ' — RoboTun';
 
   // Tag chips
   const chipsEl = document.getElementById('tagChips');
@@ -136,7 +145,7 @@ function filterListing(cat, tag, btn) {
 function renderCards(posts) {
   const grid = document.getElementById('cardsGrid');
   if (!posts.length) {
-    grid.innerHTML = '<div class="empty"><span>🔍</span><p>Không có bài viết nào.</p></div>';
+    grid.innerHTML = '<div class="empty"><span>🔍</span><p>No posts found.</p></div>';
     return;
   }
   grid.innerHTML = posts.map((p, i) => `
@@ -145,8 +154,8 @@ function renderCards(posts) {
       <div class="pc-title">${p.title}</div>
       <div class="pc-excerpt">${p.excerpt || ''}</div>
       <div class="pc-meta">
-        <span>${fmtDate(p.date)} · ${readTime(p.content)} phút đọc</span>
-        <span class="pc-read">Đọc →</span>
+        <span>${fmtDate(p.date)} · ${readTime(p.content)} min read</span>
+        <span class="pc-read">Read →</span>
       </div>
     </div>`).join('');
 }
@@ -165,14 +174,14 @@ function openPost(id, from) {
       ${post.excerpt ? `<p class="art-sub">${post.excerpt}</p>` : ''}
       <div class="art-meta">
         <span>📅 ${fmtDate(post.date)}</span>
-        <span>⏱ ${readTime(post.content)} phút đọc</span>
+        <span>⏱ ${readTime(post.content)} min read</span>
         ${post.author ? `<span>✍️ ${post.author}</span>` : ''}
       </div>
     </header>
     <div class="art-body">${mdToHtml(post.content)}</div>`;
 
   document.getElementById('articleBack').onclick = goBackFromArticle;
-  document.title = post.title + ' — DevNotes';
+  document.title = post.title + ' — RoboTun';
   history.pushState({ type: 'post', id }, '', '#post/' + id);
   showPage('pageArticle');
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -232,10 +241,49 @@ function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
 // ── Helpers ────────────────────────────────────────────────
 function fmtDate(d) {
   if (!d) return '';
-  try { return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+  try { return new Date(d).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
   catch { return d; }
 }
 function readTime(t) { return Math.max(1, Math.ceil((t || '').split(/\s+/).length / 200)); }
+
+// ── Search ────────────────────────────────────────────────
+function handleSearch() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  const resultEl = document.getElementById('searchResults');
+  
+  if (!query) {
+    resultEl.classList.remove('active');
+    resultEl.innerHTML = '';
+    return;
+  }
+  
+  const results = allPosts.filter(post =>
+    post.title.toLowerCase().includes(query) ||
+    post.excerpt.toLowerCase().includes(query) ||
+    (post.tags || []).some(t => t.toLowerCase().includes(query))
+  ).slice(0, 8);
+  
+  if (results.length === 0) {
+    resultEl.classList.remove('active');
+    resultEl.innerHTML = '';
+    return;
+  }
+  
+  resultEl.classList.add('active');
+  resultEl.innerHTML = results.map(post => `
+    <div class="search-result-item" onclick="openPost('${post.id}','home'); document.getElementById('searchInput').value = ''; document.getElementById('searchResults').classList.remove('active')">
+      <span class="search-result-title">${post.title}</span>
+      <span class="search-result-excerpt">${post.excerpt || ''}</span>
+    </div>
+  `).join('');
+}
+
+// Click outside search to close
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.nav-search')) {
+    document.getElementById('searchResults').classList.remove('active');
+  }
+});
 
 // ── Theme ──────────────────────────────────────────────────
 (function () {
@@ -290,8 +338,8 @@ handleRoute();
    ADMIN PANEL
    ══════════════════════════════════════════════════════════ */
 
-// ── Đổi password tại đây ─────────────────────────────────
-const ADMIN_PASSWORD = 'devnotes2024';
+// ── Change password in here ─────────────────────────────────
+const ADMIN_PASSWORD = '123';
 
 // Tag gợi ý theo chuyên mục
 const TAG_SUGGESTIONS = {
@@ -324,7 +372,7 @@ function checkAdminPass() {
     openAdminPage();
   } else {
     const err = document.getElementById('modalError');
-    err.textContent = '✕ Mật khẩu không đúng';
+    err.textContent = '✕ Incorrect password';
     document.getElementById('adminPassInput').value = '';
     document.getElementById('adminPassInput').focus();
     // shake animation
@@ -343,7 +391,7 @@ document.getElementById('adminModal').addEventListener('click', function(e) {
 function openAdminPage() {
   showPage('pageAdmin');
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  document.title = 'Admin — DevNotes';
+  document.title = 'Admin — RoboTun';
 
   // Set today's date
   document.getElementById('fDate').value = new Date().toISOString().slice(0, 10);
@@ -361,7 +409,7 @@ function openAdminPage() {
 
 function adminLogout() {
   navigate('home');
-  document.title = 'DevNotes — Embedded & Systems';
+  document.title = 'RoboTun — Embedded & Systems';
 }
 
 function updateAdminHint() {
@@ -380,7 +428,7 @@ function addTag(tag) {
   }
 }
 
-// ── Auto-slug từ title ────────────────────────────────────
+// ── Auto-slug from title ────────────────────────────────────
 function autoSlug() {
   updateAdminHint();
 }
@@ -415,6 +463,85 @@ function syncPreview() {
   updateAdminHint();
 }
 
+// ── Image upload helpers ───────────────────────────────────
+let uploadedImages = {};
+
+function handleImageDrop(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+  document.getElementById('imageUploadArea').classList.remove('dragover');
+  
+  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+  processImages(files);
+}
+
+document.getElementById('imageUploadArea')?.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  document.getElementById('imageUploadArea').classList.add('dragover');
+});
+
+document.getElementById('imageUploadArea')?.addEventListener('dragleave', () => {
+  document.getElementById('imageUploadArea').classList.remove('dragover');
+});
+
+document.getElementById('imageUploadArea')?.addEventListener('click', () => {
+  document.getElementById('imageInput').click();
+});
+
+function handleImageSelect(e) {
+  const files = Array.from(e.target.files);
+  processImages(files);
+}
+
+function processImages(files) {
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target.result;
+      const imageId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      uploadedImages[imageId] = { base64, name: file.name };
+      renderImagePreview();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderImagePreview() {
+  const previewList = document.getElementById('imagePreviewList');
+  const insertBtn = document.getElementById('insertImagesBtn');
+  
+  previewList.innerHTML = Object.entries(uploadedImages).map(([id, img]) => `
+    <div class="image-preview-item" title="${img.name}">
+      <img src="${img.base64}" alt="${img.name}">
+      <button class="image-preview-remove" onclick="removeImage('${id}')">✕</button>
+    </div>
+  `).join('');
+  
+  // Show/hide insert button
+  insertBtn.style.display = Object.keys(uploadedImages).length > 0 ? 'block' : 'none';
+}
+
+function removeImage(id) {
+  delete uploadedImages[id];
+  renderImagePreview();
+}
+
+function insertImageToContent() {
+  if (Object.keys(uploadedImages).length === 0) return;
+  
+  const contentEl = document.getElementById('fContent');
+  let markdown = '\n\n';
+  
+  Object.values(uploadedImages).forEach(img => {
+    markdown += `![Image](${img.base64})\n\n`;
+  });
+  
+  contentEl.value += markdown;
+  uploadedImages = {};
+  renderImagePreview();
+  syncPreview();
+}
+
 // ── Generate file ─────────────────────────────────────────
 function generateFile() {
   const id      = document.getElementById('fId').value.trim();
@@ -428,13 +555,13 @@ function generateFile() {
   // Validate
   const missing = [];
   if (!id)      missing.push('ID');
-  if (!title)   missing.push('Tiêu đề');
-  if (!excerpt) missing.push('Mô tả ngắn');
+  if (!title)   missing.push('Title');
+  if (!excerpt) missing.push('Short Description');
   if (!tagsRaw) missing.push('Tags');
-  if (!content) missing.push('Nội dung');
+  if (!content) missing.push('Content');
 
   if (missing.length) {
-    alert('⚠ Vui lòng điền đầy đủ: ' + missing.join(', '));
+    alert('⚠ Please fill in: ' + missing.join(', '));
     return;
   }
 
@@ -459,14 +586,14 @@ function generateFile() {
   content: \`${escapedContent}\`
 });`;
 
-  const scriptTag = `  <script src="posts/${filename}"></script>`;
+  const manifestEntry = `"${filename}" in posts-manifest.json`;
 
   // Show output
   document.getElementById('outputBox').classList.add('hidden');
   document.getElementById('outputReady').classList.remove('hidden');
   document.getElementById('outFilename').textContent = `posts/${filename}`;
   document.getElementById('outFilenameLabel').textContent = `posts/${filename}`;
-  document.getElementById('outScriptTag').textContent = scriptTag;
+  document.getElementById('outScriptTag').textContent = manifestEntry;
   document.getElementById('outputCode').textContent = fileContent;
 
   // Scroll to output on mobile
@@ -478,7 +605,7 @@ function copyOutput() {
   const code = document.getElementById('outputCode').textContent;
   navigator.clipboard.writeText(code).then(() => {
     const btn = document.getElementById('copyBtn');
-    btn.textContent = '✓ Đã copy!';
+    btn.textContent = '✓ Copied!';
     btn.classList.add('copied');
     setTimeout(() => {
       btn.textContent = 'Copy';

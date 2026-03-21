@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DevNotes — Embedded & Systems Programming</title>
+  <title>RoboTun — Embedded & Systems Programming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
@@ -18,18 +18,39 @@
           <rect width="28" height="28" rx="6" fill="var(--accent)"/>
           <path d="M7 14h4l2-5 3 10 2-5h3" stroke="#0f0e0c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
         </svg>
-        <span>ROBOTUN</span>
+        <span>RoboTun</span>
       </a>
       <div class="nav-links" id="navLinks">
         <a href="#" class="nav-link" onclick="return navigate('category','linux')">Linux</a>
         <a href="#" class="nav-link" onclick="return navigate('category','mcu')">MCU</a>
-        <a href="#" class="nav-link" onclick="return navigate('category','fpga')">FPGA</a>
+        
+        <!-- FPGA Dropdown -->
+        <div class="nav-dropdown">
+          <a href="#" class="nav-link" onclick="event.preventDefault(); return navigate('category','fpga')">FPGA</a>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" onclick="return navigate('category','fpga/verilog')">Verilog</a>
+            <a href="#" class="dropdown-item" onclick="return navigate('category','fpga/vhdl')">VHDL</a>
+            <div class="dropdown-item dropdown-submenu">
+              <span>Board</span>
+              <div class="dropdown-submenu-menu">
+                <a href="#" class="dropdown-item" onclick="return navigate('category','fpga/board/cyclone-v')">Cyclone V</a>
+                <a href="#" class="dropdown-item" onclick="return navigate('category','fpga/board/zynq-7')">Zynq Z7-10</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <a href="#" class="nav-link" onclick="return navigate('category','robot')">Robot</a>
         <a href="#" class="nav-link" onclick="return navigate('category','algo')">Algorithm</a>
         <a href="#" class="nav-link" onclick="return navigate('category','python')">Python</a>
         <a href="#" class="nav-link" onclick="return navigate('category','make')">Makefile</a>
         <a href="#" class="nav-link" onclick="return navigate('category','debug')">Debug</a>
         <a href="#" class="nav-link nav-link-all" onclick="return navigate('all')">All</a>
+      </div>
+      <div class="nav-search">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search posts..." 
+               onkeyup="handleSearch()">
+        <div class="search-results" id="searchResults"></div>
       </div>
       <button class="theme-btn" id="themeBtn">☀</button>
     </div>
@@ -41,11 +62,11 @@
     <header class="hero">
       <div class="hero-content">
         <p class="hero-kicker">// embedded · systems · firmware</p>
-        <h1 class="hero-heading">Ghi chép<br/><em>hành trình</em><br/>kỹ thuật số</h1>
-        <p class="hero-sub">Kiến thức thực chiến về Embedded Linux, MCU, FPGA, Robot và các công cụ lập trình hệ thống cấp thấp.</p>
+        <h1 class="hero-heading">Notes<br/><em>journey</em><br/>RoboTun</h1>
+        <p class="hero-sub">Practical insights into Embedded Linux, MCUs, FPGAs, Robotics, and low-level system programming tools.</p>
         <div class="hero-actions">
-          <button class="btn-primary" onclick="navigate('all')">Xem tất cả bài viết →</button>
-          <button class="btn-ghost" onclick="document.getElementById('categories').scrollIntoView({behavior:'smooth'})">Khám phá chuyên mục ↓</button>
+          <button class="btn-primary" onclick="navigate('all')">View all posts →</button>
+          <button class="btn-ghost" onclick="document.getElementById('categories').scrollIntoView({behavior:'smooth'})">Explore categories ↓</button>
         </div>
       </div>
       <div class="hero-visual" aria-hidden="true">
@@ -80,9 +101,9 @@
     <section class="cat-section" id="categories">
       <div class="wrap">
         <div class="sec-head">
-          <p class="sec-eyebrow">// chuyên mục</p>
-          <h2 class="sec-title">8 lĩnh vực chuyên sâu</h2>
-          <p class="sec-sub">Từ kernel Linux đến vi điều khiển, từ FPGA đến thuật toán</p>
+          <p class="sec-eyebrow">// Categories</p>
+          <h2 class="sec-title">8 Specialties</h2>
+          <p class="sec-sub">Bridging the gap: From Linux kernel and MCUs to FPGA and advanced algorithms.</p>
         </div>
 
         <div class="cat-grid">
@@ -103,10 +124,10 @@
             </div>
             <div class="cat-body">
               <h3>Embedded Linux</h3>
-              <p>Kernel driver, Device Tree, Buildroot, Yocto, U-Boot, cross-compilation và hệ thống Linux nhúng.</p>
+              <p>Kernel driver, Device Tree, Buildroot, Yocto, U-Boot, cross-compilation and embedded systems.</p>
             </div>
             <div class="cat-foot">
-              <span class="cat-cnt" data-cat="linux">0 bài viết</span>
+              <span class="cat-cnt" data-cat="linux">0 article</span>
               <span class="cat-arr">→</span>
             </div>
           </div>
@@ -133,10 +154,10 @@
             </div>
             <div class="cat-body">
               <h3>Embedded MCU</h3>
-              <p>STM32, ESP32, AVR, RTOS, HAL, bare-metal programming, GPIO, UART, SPI, I2C và ngoại vi.</p>
+              <p>STM32, ESP32, AVR, RTOS, HAL, bare-metal programming, GPIO, UART, SPI, I2C and peripheral.</p>
             </div>
             <div class="cat-foot">
-              <span class="cat-cnt" data-cat="mcu">0 bài viết</span>
+              <span class="cat-cnt" data-cat="mcu">0 article</span>
               <span class="cat-arr">→</span>
             </div>
           </div>
@@ -158,10 +179,10 @@
             </div>
             <div class="cat-body">
               <h3>FPGA</h3>
-              <p>VHDL, Verilog, SystemVerilog, Vivado, Quartus, IP core, timing analysis và digital design.</p>
+              <p>VHDL, Verilog, SystemVerilog, Vivado, Quartus, IP core, timing analysis and digital design.</p>
             </div>
             <div class="cat-foot">
-              <span class="cat-cnt" data-cat="fpga">0 bài viết</span>
+              <span class="cat-cnt" data-cat="fpga">0 article</span>
               <span class="cat-arr">→</span>
             </div>
           </div>
@@ -185,10 +206,10 @@
             </div>
             <div class="cat-body">
               <h3>Robot</h3>
-              <p>ROS/ROS2, kinematics, path planning, sensor fusion, SLAM, điều khiển động cơ và tự động hóa.</p>
+              <p>ROS/ROS2, kinematics, path planning, sensor fusion, SLAM, motor controller and automations.</p>
             </div>
             <div class="cat-foot">
-              <span class="cat-cnt" data-cat="robot">0 bài viết</span>
+              <span class="cat-cnt" data-cat="robot">0 article</span>
               <span class="cat-arr">→</span>
             </div>
           </div>
@@ -210,10 +231,10 @@
             </div>
             <div class="cat-body">
               <h3>Algorithm</h3>
-              <p>Data structures, sorting, graph, dynamic programming, bit manipulation và tối ưu hóa thuật toán.</p>
+              <p>Data structures, sorting, graph, dynamic programming, bit manipulation and optimize algorithms.</p>
             </div>
             <div class="cat-foot">
-              <span class="cat-cnt" data-cat="algo">0 bài viết</span>
+              <span class="cat-cnt" data-cat="algo">0 article</span>
               <span class="cat-arr">→</span>
             </div>
           </div>
@@ -230,10 +251,10 @@
             </div>
             <div class="cat-body">
               <h3>Python</h3>
-              <p>Scripting, automation, data processing, NumPy, OpenCV, serial communication và tooling cho embedded.</p>
+              <p>Scripting, automation, data processing, NumPy, OpenCV, serial communication and tooling for embedded.</p>
             </div>
             <div class="cat-foot">
-              <span class="cat-cnt" data-cat="python">0 bài viết</span>
+              <span class="cat-cnt" data-cat="python">0 article</span>
               <span class="cat-arr">→</span>
             </div>
           </div>
@@ -251,10 +272,10 @@
             </div>
             <div class="cat-body">
               <h3>Makefile</h3>
-              <p>GNU Make, build system, cross-compile toolchain, CMake, linker script và quản lý dự án C/C++.</p>
+              <p>GNU Make, build system, cross-compile toolchain, CMake, linker script and management project C/C++.</p>
             </div>
             <div class="cat-foot">
-              <span class="cat-cnt" data-cat="make">0 bài viết</span>
+              <span class="cat-cnt" data-cat="make">0 article</span>
               <span class="cat-arr">→</span>
             </div>
           </div>
@@ -276,10 +297,10 @@
             </div>
             <div class="cat-body">
               <h3>Debug Tool</h3>
-              <p>GDB, OpenOCD, JTAG/SWD, Logic Analyzer, oscilloscope, Valgrind, strace và kỹ thuật debug hệ thống.</p>
+              <p>GDB, OpenOCD, JTAG/SWD, Logic Analyzer, oscilloscope, Valgrind, strace and debug skills.</p>
             </div>
             <div class="cat-foot">
-              <span class="cat-cnt" data-cat="debug">0 bài viết</span>
+              <span class="cat-cnt" data-cat="debug">0 article</span>
               <span class="cat-arr">→</span>
             </div>
           </div>
@@ -295,11 +316,11 @@
               </svg>
             </div>
             <div class="cat-body">
-              <h3>Tất cả bài viết</h3>
-              <p>Xem toàn bộ bài viết từ tất cả 8 chuyên mục, sắp xếp theo ngày mới nhất.</p>
+              <h3>All Articles</h3>
+              <p>View all posts from all 8 categories, sorted by latest date.</p>
             </div>
             <div class="cat-foot">
-              <span class="cat-cnt" id="totalCount">0 bài viết</span>
+              <span class="cat-cnt" id="totalCount">0 article</span>
               <span class="cat-arr">→</span>
             </div>
           </div>
@@ -314,9 +335,9 @@
         <div class="latest-head">
           <div>
             <p class="sec-eyebrow">// latest</p>
-            <h2 class="sec-title">Bài viết mới nhất</h2>
+            <h2 class="sec-title">Most new article</h2>
           </div>
-          <button class="btn-ghost small" onclick="navigate('all')">Xem tất cả →</button>
+          <button class="btn-ghost small" onclick="navigate('all')">Show all →</button>
         </div>
         <div class="latest-list" id="latestList"></div>
       </div>
@@ -328,9 +349,9 @@
   <div id="pageListing" class="page-off">
     <div class="wrap">
       <div class="list-header">
-        <button class="back-pill" id="listingBack">← Trang chủ</button>
+        <button class="back-pill" id="listingBack">← Home</button>
         <div class="list-title-row">
-          <h1 id="listingTitle">Bài viết</h1>
+          <h1 id="listingTitle">Article</h1>
           <span class="badge" id="listingCount"></span>
         </div>
         <div class="tag-chips" id="tagChips"></div>
@@ -342,14 +363,14 @@
   <!-- ══ ARTICLE PAGE ══ -->
   <div id="pageArticle" class="page-off">
     <div class="article-wrap">
-      <button class="back-pill" id="articleBack">← Quay lại</button>
+      <button class="back-pill" id="articleBack">← Back</button>
       <article id="articleContent"></article>
     </div>
   </div>
 
   <footer class="site-footer">
     <div class="wrap footer-inner">
-      <span class="footer-brand">DevNotes</span>
+      <span class="footer-brand">RoboTun</span>
       <span class="footer-note">Embedded · Systems · Firmware · GitHub Pages</span>
       <button class="footer-admin-btn" onclick="openAdminModal()" title="Admin">⚿</button>
     </div>
@@ -363,15 +384,15 @@
         <h2 class="modal-title">Admin Access</h2>
         <button class="modal-close" onclick="closeAdminModal()">✕</button>
       </div>
-      <p class="modal-sub">Nhập mật khẩu để truy cập trang quản trị</p>
+      <p class="modal-sub">Enter password to access admin page</p>
       <div class="modal-field">
         <input type="password" id="adminPassInput" class="modal-input"
-               placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter')checkAdminPass()" autofocus/>
+               placeholder="Password..." onkeydown="if(event.key==='Enter')checkAdminPass()" autofocus/>
         <p class="modal-error" id="modalError"></p>
       </div>
       <div class="modal-actions">
-        <button class="btn-primary" onclick="checkAdminPass()">Đăng nhập →</button>
-        <button class="btn-ghost" onclick="closeAdminModal()">Huỷ</button>
+        <button class="btn-primary" onclick="checkAdminPass()">Login →</button>
+        <button class="btn-ghost" onclick="closeAdminModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -381,7 +402,7 @@
     <div class="admin-wrap">
       <div class="admin-topbar">
         <div class="admin-topbar-left">
-          <button class="back-pill" onclick="adminLogout()">← Thoát Admin</button>
+          <button class="back-pill" onclick="adminLogout()">← Exit Admin</button>
           <span class="admin-badge">✦ Admin Mode</span>
         </div>
         <div class="admin-topbar-right">
@@ -393,57 +414,74 @@
 
         <!-- LEFT: Form nhập bài -->
         <div class="admin-form-col">
-          <h2 class="admin-section-title">✍ Viết bài mới</h2>
+          <h2 class="admin-section-title">✍ New Article</h2>
 
           <div class="field-group">
-            <label class="field-label">ID bài viết <span class="field-req">*</span></label>
-            <input type="text" id="fId" class="field-input" placeholder="vd: stm32-adc-tutorial"
+            <label class="field-label">Article ID <span class="field-req">*</span></label>
+            <input type="text" id="fId" class="field-input" placeholder="ex: stm32-adc-tutorial"
                    oninput="autoSlug()" />
-            <p class="field-hint">Không dấu, không space, dùng dấu gạch ngang</p>
+            <p class="field-hint">No accents, no spaces, use hyphens</p>
           </div>
 
           <div class="field-group">
-            <label class="field-label">Tiêu đề <span class="field-req">*</span></label>
-            <input type="text" id="fTitle" class="field-input" placeholder="Tiêu đề bài viết..."
+            <label class="field-label">Title <span class="field-req">*</span></label>
+            <input type="text" id="fTitle" class="field-input" placeholder="Article title..."
                    oninput="syncPreview()" />
           </div>
 
           <div class="field-group">
-            <label class="field-label">Mô tả ngắn (excerpt) <span class="field-req">*</span></label>
+            <label class="field-label">Short description (excerpt) <span class="field-req">*</span></label>
             <textarea id="fExcerpt" class="field-input field-textarea-sm" rows="2"
-                      placeholder="Mô tả ngắn hiện trên card..." oninput="syncPreview()"></textarea>
+                      placeholder="Description shown on card..." oninput="syncPreview()"></textarea>
           </div>
 
           <div class="field-row">
             <div class="field-group flex1">
-              <label class="field-label">Ngày đăng</label>
+              <label class="field-label">Post Date</label>
               <input type="date" id="fDate" class="field-input" />
             </div>
             <div class="field-group flex1">
-              <label class="field-label">Tác giả</label>
-              <input type="text" id="fAuthor" class="field-input" placeholder="Tên tác giả" />
+              <label class="field-label">Author</label>
+              <input type="text" id="fAuthor" class="field-input" placeholder="Author name" />
             </div>
           </div>
 
           <div class="field-group">
             <label class="field-label">Tags <span class="field-req">*</span></label>
             <input type="text" id="fTags" class="field-input"
-                   placeholder="vd: stm32, mcu, uart, dma" oninput="syncPreview()" />
+                   placeholder="ex: stm32, mcu, uart, dma" oninput="syncPreview()" />
             <div class="tag-presets" id="tagPresets"></div>
           </div>
 
           <div class="field-group">
+            <label class="field-label">Upload Images</label>
+            <div class="image-upload-area" id="imageUploadArea" ondrop="handleImageDrop(event)" ondragover="event.preventDefault()" ondragleave="event.target.classList.remove('dragover')">
+              <input type="file" id="imageInput" class="image-input-hidden" multiple accept="image/*" onchange="handleImageSelect(event)">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <path d="M8 8h32v24l-8-8-8 8-8-6-8 8V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="28" cy="16" r="3" fill="currentColor"/>
+              </svg>
+              <p class="upload-text">Drag images here or <strong>click to select</strong></p>
+              <p class="upload-hint">Images will be converted to Base64 (embedded in article)</p>
+              <div class="image-preview-list" id="imagePreviewList"></div>
+              <button type="button" class="btn-insert-images" id="insertImagesBtn" style="display:none;" onclick="insertImageToContent()">
+                ↓ Insert selected images to content
+              </button>
+            </div>
+          </div>
+
+          <div class="field-group">
             <div class="field-label-row">
-              <label class="field-label">Nội dung (Markdown) <span class="field-req">*</span></label>
+              <label class="field-label">Content (Markdown) <span class="field-req">*</span></label>
               <div class="editor-tabs">
-                <button class="etab active" id="tabWrite" onclick="switchTab('write')">Viết</button>
+                <button class="etab active" id="tabWrite" onclick="switchTab('write')">Write</button>
                 <button class="etab" id="tabPreview" onclick="switchTab('preview')">Preview</button>
               </div>
             </div>
             <textarea id="fContent" class="field-input field-textarea-lg" rows="18"
-                      placeholder="## Tiêu đề
+                      placeholder="## Title
 
-Nội dung Markdown ở đây...
+Markdown content here...
 
 ```c
 // code
@@ -453,17 +491,17 @@ Nội dung Markdown ở đây...
           </div>
 
           <button class="btn-generate" onclick="generateFile()">
-            <span>⬇ Tạo file & hướng dẫn thêm vào blog</span>
+            <span>⬇ Generate file & guide to add to blog</span>
           </button>
         </div>
 
         <!-- RIGHT: Output -->
         <div class="admin-out-col">
-          <h2 class="admin-section-title">📋 File được tạo</h2>
+          <h2 class="admin-section-title">📋 Generated File</h2>
 
           <div id="outputBox" class="output-placeholder">
             <span class="output-ph-icon">💡</span>
-            <p>Điền thông tin bài viết bên trái<br/>rồi bấm <strong>"Tạo file"</strong></p>
+            <p>Fill in article information on the left<br/>then click <strong>"Generate file"</strong></p>
           </div>
 
           <div id="outputReady" class="output-ready hidden">
@@ -471,20 +509,20 @@ Nội dung Markdown ở đây...
               <div class="ostep">
                 <span class="ostep-num">1</span>
                 <div>
-                  <strong>Copy nội dung bên dưới</strong>, lưu vào file
+                  <strong>Copy content below</strong> and save to file
                   <code id="outFilename" class="ostep-code"></code>
                 </div>
               </div>
               <div class="ostep">
                 <span class="ostep-num">2</span>
                 <div>
-                  Mở <code class="ostep-code">index.html</code>, thêm vào vùng POSTS:
+                  Update <code class="ostep-code">posts/posts-manifest.json</code>, add your file name to the list:
                   <div class="ostep-snippet" id="outScriptTag"></div>
                 </div>
               </div>
               <div class="ostep">
                 <span class="ostep-num">3</span>
-                <div><strong>Commit & push</strong> cả 2 file lên GitHub</div>
+                <div><strong>Commit & push</strong> both files to GitHub (no need to edit index.html)</div>
               </div>
             </div>
 
@@ -500,14 +538,11 @@ Nội dung Markdown ở đây...
     </div>
   </div>
 
-  <!-- ═══ POSTS — thêm 1 dòng script cho mỗi bài mới ═══ -->
+  <!-- Load posts data manifest -->
   <script src="posts/posts.js"></script>
-  <script src="posts/embedded-linux-device-driver.js"></script>
-  <script src="posts/stm32-uart-dma.js"></script>
-  <script src="posts/fpga-vhdl-uart.js"></script>
-  <script src="posts/gdb-debug-embedded.js"></script>
-  <script src="posts/python-serial-monitor.js"></script>
-  <!-- ════════════════════════════════════════════════════ -->
+  <!-- Auto-load all posts from manifest -->
+  <script src="posts/auto-loader.js"></script>
+  <!-- Core application logic -->
   <script src="app.js"></script>
 </body>
 </html>

@@ -1,25 +1,28 @@
 POSTS_DATA.push({
   id: "stm32-uart-dma",
-  title: "STM32 UART với DMA — Không cần polling",
-  excerpt: "Tận dụng DMA để nhận UART không chặn CPU, xử lý dữ liệu serial hiệu quả trên STM32F4 với HAL library.",
-  date: "2024-04-05",
-  author: "Author",
-  tags: ["stm32", "mcu", "uart", "dma", "hal", "firmware"],
-  content: `## Tại sao cần DMA cho UART?
+  title: "STM32 UART with DMA",
+  excerpt: "Complete guide to configure UART communication with DMA on STM32 microcontrollers for efficient serial data handling",
+  date: "2026-03-15",
+  author: "RoboTun Team",
+  tags: ["stm32", "uart", "dma", "embedded", "mcu"],
+  content: `## Why Use DMA for UART?
 
-Khi dùng \`HAL_UART_Receive()\` blocking, CPU phải ngồi chờ từng byte. Với DMA, CPU được giải phóng — DMA tự chuyển data từ UART vào RAM.
+When using blocking \`HAL_UART_Receive()\`, the CPU waits for each byte. With DMA, the CPU is freed — DMA transfers data from UART to RAM automatically.
 
----
+### Key Advantages
 
-## Cấu hình trong CubeMX
+- **Non-blocking operation** — CPU can do other work
+- **Circular buffering** — Automatic wraparound
+- **Idle line detection** — Know when transmission ends
+- **Interrupt-driven** — Wake up MCU when data arrives
+
+## CubeMX Configuration
 
 1. USART1 → Mode: **Asynchronous**
 2. DMA Settings → Add → **USART1_RX** → Mode: **Circular**
 3. NVIC: Enable **USART1 global interrupt**
 
----
-
-## Code với Idle Line Detection
+## Implementation with Idle Line Detection
 
 \`\`\`c
 #define RX_BUF_SIZE  256

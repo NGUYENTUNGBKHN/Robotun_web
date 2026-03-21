@@ -1,4 +1,4 @@
-# DevNotes — Blog cá nhân
+# RoboTun — Blog cá nhân
 
 Blog chia sẻ kiến thức lập trình, lưu trữ trên **GitHub Pages**.  
 Mỗi bài viết là một file JSON riêng biệt — dễ viết, dễ quản lý.
@@ -93,7 +93,7 @@ Hoặc nếu dùng repo khác: `https://username.github.io/ten-repo`
 ## ⚙️ Tùy chỉnh
 
 Mở `index.html` để đổi:
-- **Tên blog**: tìm `DevNotes` và thay bằng tên của bạn
+- **Tên blog**: tìm `RoboTun` và thay bằng tên của bạn
 - **Tagline**: tìm `// kiến thức · chia sẻ · phát triển`
 - **Mô tả hero**: tìm `hero-desc`
 
@@ -110,3 +110,6 @@ Mở `index.html` để đổi:
 | `content` | ✅ | Nội dung Markdown |
 | `tags` | ❌ | Mảng string, dùng để lọc |
 | `author` | ❌ | Tên tác giả |
+
+
+python -m http.server 8080
