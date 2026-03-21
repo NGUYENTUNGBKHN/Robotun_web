@@ -457,23 +457,63 @@ function appendPlainAsBlocks(frag, text) {
 
 function markdownToEditorFragment(md) {
   const frag = document.createDocumentFragment();
-  const re = /!\[([^\]]*)\]\(([^)]+)\)/g;
-  let last = 0;
-  let m;
-  while ((m = re.exec(md)) !== null) {
-    if (m.index > last) appendPlainAsBlocks(frag, md.slice(last, m.index));
-    const wrap = document.createElement('span');
-    wrap.className = 'md-embed-img';
-    wrap.contentEditable = 'false';
-    const img = document.createElement('img');
-    img.src = m[2];
-    img.alt = String(m[1] || '').replace(/[\[\]]/g, '');
-    img.loading = 'lazy';
-    wrap.appendChild(img);
-    frag.appendChild(wrap);
-    last = m.lastIndex;
+
+  // Parse images manually to handle very long base64 data URLs
+  function parseImages(text) {
+    const results = [];
+    let i = 0;
+    while (i < text.length) {
+      const imgStart = text.indexOf('![', i);
+      if (imgStart === -1) {
+        results.push({ type: 'text', value: text.slice(i) });
+        break;
+      }
+      if (imgStart > i) {
+        results.push({ type: 'text', value: text.slice(i, imgStart) });
+      }
+      // Find "]("
+      const altEnd = text.indexOf('](', imgStart + 2);
+      if (altEnd === -1) {
+        results.push({ type: 'text', value: text.slice(imgStart) });
+        break;
+      }
+      const alt = text.slice(imgStart + 2, altEnd);
+      // Find closing ")" — for base64 data URIs, find the last ")" before next "![" or end
+      let urlStart = altEnd + 2;
+      let urlEnd = -1;
+      const nextImg = text.indexOf('![', urlStart);
+      // Search for ")" from end of potential URL backward
+      const searchEnd = nextImg === -1 ? text.length : nextImg;
+      // Find the last ")" in the window
+      urlEnd = text.lastIndexOf(')', searchEnd - 1);
+      if (urlEnd < urlStart) {
+        results.push({ type: 'text', value: text.slice(imgStart) });
+        i = imgStart + 2;
+        continue;
+      }
+      const src = text.slice(urlStart, urlEnd);
+      results.push({ type: 'img', alt, src });
+      i = urlEnd + 1;
+    }
+    return results;
   }
-  if (last < md.length) appendPlainAsBlocks(frag, md.slice(last));
+
+  const parts = parseImages(md);
+  for (const part of parts) {
+    if (part.type === 'text') {
+      if (part.value) appendPlainAsBlocks(frag, part.value);
+    } else {
+      const wrap = document.createElement('span');
+      wrap.className = 'md-embed-img';
+      wrap.contentEditable = 'false';
+      const img = document.createElement('img');
+      img.src = part.src;
+      img.alt = String(part.alt || '').replace(/[\[\]]/g, '');
+      img.loading = 'lazy';
+      wrap.appendChild(img);
+      frag.appendChild(wrap);
+    }
+  }
   return frag;
 }
 
