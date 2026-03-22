@@ -207,6 +207,8 @@ function openPost(id, from) {
   document.getElementById('articleBack').onclick = goBackFromArticle;
   document.title = post.title + ' — RoboTun';
   history.pushState({ type: 'post', id }, '', '#post/' + id);
+  renderSimilarTopics(post);
+  renderRecentChanges(post);
   showPage('pageArticle');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -221,6 +223,71 @@ function goBackFromArticle() {
   } else {
     navigate('home');
   }
+}
+
+// ── Sidebar: Similar Topics ────────────────────────────────
+function renderSimilarTopics(currentPost) {
+  const el = document.getElementById('similarTopicsList');
+  if (!el) return;
+  const currentTags = (currentPost.tags || []).map(t => t.toLowerCase());
+  const scored = allPosts
+    .filter(p => p.id !== currentPost.id)
+    .map(p => {
+      const pTags = (p.tags || []).map(t => t.toLowerCase());
+      const shared = currentTags.filter(t => pTags.includes(t)).length;
+      return { post: p, score: shared };
+    })
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 6);
+
+  if (!scored.length) {
+    el.innerHTML = '<p class="sidebar-empty">No similar topics found.</p>';
+    return;
+  }
+  el.innerHTML = scored.map(({ post: p }) => {
+    const catKey = Object.keys(CATEGORIES).find(k =>
+      CATEGORIES[k].tags.some(t => (p.tags || []).map(x => x.toLowerCase()).includes(t))
+    ) || 'linux';
+    const colorVar = CAT_COLORS[catKey] || '--c-linux';
+    return `
+    <div class="sidebar-item" onclick="openPost('${p.id}','article')">
+      <span class="sidebar-item-title">${p.title}</span>
+      <span class="sidebar-item-bar" style="background:var(${colorVar})"></span>
+    </div>`;
+  }).join('');
+}
+
+// ── Sidebar: Recent Changes ────────────────────────────────
+function renderRecentChanges(currentPost) {
+  const el = document.getElementById('recentChangesList');
+  if (!el) return;
+  const recent = allPosts
+    .filter(p => p.id !== currentPost.id)
+    .slice(0, 5);
+
+  if (!recent.length) {
+    el.innerHTML = '<p class="sidebar-empty">No recent posts.</p>';
+    return;
+  }
+  el.innerHTML = recent.map(p => {
+    const catKey = Object.keys(CATEGORIES).find(k =>
+      CATEGORIES[k].tags.some(t => (p.tags || []).map(x => x.toLowerCase()).includes(t))
+    ) || 'linux';
+    const colorVar = CAT_COLORS[catKey] || '--c-linux';
+    const hasThumb = p.thumbnail || p.image || null;
+    return `
+    <div class="sidebar-rc-item" onclick="openPost('${p.id}','article')">
+      <div class="sidebar-rc-text">
+        <span class="sidebar-item-title">${p.title}</span>
+        ${p.excerpt ? `<span class="sidebar-rc-excerpt">${p.excerpt.slice(0,70)}${p.excerpt.length>70?'…':''}</span>` : ''}
+      </div>
+      ${hasThumb
+        ? `<img class="sidebar-rc-thumb" src="${hasThumb}" alt="" />`
+        : `<span class="sidebar-rc-dot" style="background:var(${colorVar})"></span>`
+      }
+    </div>`;
+  }).join('');
 }
 
 // ── Page switching ─────────────────────────────────────────

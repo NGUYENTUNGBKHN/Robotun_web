@@ -1,9 +1,7 @@
 {
   "posts": [
-    "mcu/stm32-uart-dma.js",
-    "fpga/fpga-verilog-intro.js",
-    "fpga/fpga-vhdl-intro.js",
     "fpga/build-uboot-cyclone-v.js",
-    "fpga/test.js"
+    "fpga/Gen_compiling_preloader.js",
+    "fpga/Preloader-uboot-on-DE10-nano-windows-wsl.js"
   ]
 }
