@@ -22,7 +22,21 @@
       </a>
       <div class="nav-links" id="navLinks">
         <a href="#" class="nav-link" onclick="return navigate('category','linux')">Linux</a>
-        <a href="#" class="nav-link" onclick="return navigate('category','mcu')">MCU</a>
+        <!-- <a href="#" class="nav-link" onclick="return navigate('category','mcu')">MCU</a> -->
+        <div class="nav-dropdown">
+          <a href="#" class="nav-link" onclick="event.preventDefault(); return navigate('category','mcu')">MCU</a>
+          <div class="dropdown-menu">
+            <a href="#" class="dropdown-item" onclick="return navigate('category','mcu/NXP')">NXP</a>
+            <a href="#" class="dropdown-item" onclick="return navigate('category','mcu/NRF52')">NRF52</a>
+            <div class="dropdown-item dropdown-submenu">
+              <span>STM32</span>
+              <div class="dropdown-submenu-menu">
+                <a href="#" class="dropdown-item" onclick="return navigate('category','mcu/STM32/STM32F746')">STM32F746</a>
+                <a href="#" class="dropdown-item" onclick="return navigate('category','mcu/STM32/STM32F407')">STM32F407</a>
+              </div>
+            </div>
+          </div>
+        </div>
         
         <!-- FPGA Dropdown -->
         <div class="nav-dropdown">
