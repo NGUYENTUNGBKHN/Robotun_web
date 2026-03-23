@@ -4,6 +4,11 @@ const CATEGORIES = {
   linux:  { label: 'Embedded Linux', tags: ['linux','embedded-linux','kernel','driver','device-tree','buildroot','yocto','uboot','u-boot','rootfs','dts','dtb','busybox','systemd','cross-compile'] },
   mcu:    { label: 'Embedded MCU',   tags: ['mcu','stm32','esp32','arduino','avr','arm','cortex','rtos','freertos','hal','bare-metal','gpio','uart','spi','i2c','adc','pwm','interrupt','dma','firmware'] },
   fpga:   { label: 'FPGA',           tags: ['fpga','vhdl','verilog','systemverilog','vivado','quartus','xilinx','altera','ip-core','rtl','synthesis','timing','hdl','pynq'] },
+  'mcu/NXP': { label: 'MCU/NXP', tags: ['nxp','lpc','kinetis','mcu','arm','gpio','uart','spi','i2c','adc','pwm','interrupt','dma','firmware'] },
+  'mcu/NRF52': { label: 'MCU/NRF52', tags: ['nrf52','nordic','mcu','arm','gpio','uart','spi','i2c','adc','pwm','interrupt','dma','firmware'] },
+  'mcu/STM32': { label: 'MCU/STM32', tags: ['stm32','mcu','arm','gpio','uart','spi','i2c','adc','pwm','interrupt','dma','firmware'] },
+  'mcu/STM32/STM32F746': { label: 'MCU/STM32/STM32F746', tags: ['stm32f746'] },
+  'mcu/STM32/STM32F407': { label: 'MCU/STM32/STM32F407', tags: ['stm32f407'] },
   'fpga/verilog': { label: 'FPGA/Verilog', tags: ['verilog','systemverilog','vivado','xilinx','ip-core','rtl','synthesis','timing','hdl'] },
   'fpga/vhdl':    { label: 'FPGA/VHDL',   tags: ['vhdl','quartus','altera','rtl','synthesis','timing','hdl'] },
   'fpga/board/cyclone-v': { label: 'FPGA/Board/Cyclone-V', tags: ['cyclone','altera','quartus','fpga','rtl','hdl'] },
@@ -208,6 +213,7 @@ function openPost(id, from) {
   document.title = post.title + ' — RoboTun';
   history.pushState({ type: 'post', id }, '', '#post/' + id);
   showPage('pageArticle');
+  renderSidebar(post);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -220,6 +226,54 @@ function goBackFromArticle() {
     else if (s.type === 'tag') navigate('tag', s.value);
   } else {
     navigate('home');
+  }
+}
+
+// ── Sidebar: Similar Topics & Recent Changes ───────────────
+function renderSidebar(currentPost) {
+  // Similar Topics: posts sharing the most tags with current post
+  const currentTags = (currentPost.tags || []).map(t => t.toLowerCase());
+
+  const scored = allPosts
+    .filter(p => p.id !== currentPost.id)
+    .map(p => {
+      const sharedTags = (p.tags || []).filter(t => currentTags.includes(t.toLowerCase())).length;
+      return { post: p, score: sharedTags };
+    })
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score || new Date(b.post.date) - new Date(a.post.date))
+    .slice(0, 5);
+
+  const similarEl = document.getElementById('similarTopicsList');
+  if (similarEl) {
+    if (scored.length) {
+      similarEl.innerHTML = scored.map(({ post }) => `
+        <div class="sidebar-item" onclick="openPost('${post.id}','article')">
+          <div class="sidebar-item-tags">${(post.tags || []).slice(0, 3).map(t => `<span class="sidebar-tag">${t}</span>`).join('')}</div>
+          <div class="sidebar-item-title">${post.title}</div>
+          <div class="sidebar-item-date">${fmtDate(post.date)}</div>
+        </div>`).join('');
+    } else {
+      similarEl.innerHTML = '<p class="sidebar-empty">No similar posts found.</p>';
+    }
+  }
+
+  // Recent Changes: latest 5 posts (excluding current)
+  const recent = allPosts
+    .filter(p => p.id !== currentPost.id)
+    .slice(0, 5);
+
+  const recentEl = document.getElementById('recentChangesList');
+  if (recentEl) {
+    if (recent.length) {
+      recentEl.innerHTML = recent.map(post => `
+        <div class="sidebar-item" onclick="openPost('${post.id}','article')">
+          <div class="sidebar-item-title">${post.title}</div>
+          <div class="sidebar-item-date">${fmtDate(post.date)}</div>
+        </div>`).join('');
+    } else {
+      recentEl.innerHTML = '<p class="sidebar-empty">No recent posts.</p>';
+    }
   }
 }
 
