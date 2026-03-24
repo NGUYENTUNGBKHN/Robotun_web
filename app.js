@@ -4,6 +4,11 @@ const CATEGORIES = {
   linux:  { label: 'Embedded Linux', tags: ['linux','embedded-linux','kernel','driver','device-tree','buildroot','yocto','uboot','u-boot','rootfs','dts','dtb','busybox','systemd','cross-compile'] },
   mcu:    { label: 'Embedded MCU',   tags: ['mcu','stm32','esp32','arduino','avr','arm','cortex','rtos','freertos','hal','bare-metal','gpio','uart','spi','i2c','adc','pwm','interrupt','dma','firmware'] },
   fpga:   { label: 'FPGA',           tags: ['fpga','vhdl','verilog','systemverilog','vivado','quartus','xilinx','altera','ip-core','rtl','synthesis','timing','hdl','pynq'] },
+  'mcu/NXP': { label: 'MCU/NXP', tags: ['nxp','lpc','kinetis','mcu','arm','gpio','uart','spi','i2c','adc','pwm','interrupt','dma','firmware'] },
+  'mcu/NRF52': { label: 'MCU/NRF52', tags: ['nrf52','nordic','mcu','arm','gpio','uart','spi','i2c','adc','pwm','interrupt','dma','firmware'] },
+  'mcu/STM32': { label: 'MCU/STM32', tags: ['stm32','mcu','arm','gpio','uart','spi','i2c','adc','pwm','interrupt','dma','firmware'] },
+  'mcu/STM32/STM32F746': { label: 'MCU/STM32/STM32F746', tags: ['stm32f746'] },
+  'mcu/STM32/STM32F407': { label: 'MCU/STM32/STM32F407', tags: ['stm32f407'] },
   'fpga/verilog': { label: 'FPGA/Verilog', tags: ['verilog','systemverilog','vivado','xilinx','ip-core','rtl','synthesis','timing','hdl'] },
   'fpga/vhdl':    { label: 'FPGA/VHDL',   tags: ['vhdl','quartus','altera','rtl','synthesis','timing','hdl'] },
   'fpga/board/cyclone-v': { label: 'FPGA/Board/Cyclone-V', tags: ['cyclone','altera','quartus','fpga','rtl','hdl'] },
@@ -207,9 +212,8 @@ function openPost(id, from) {
   document.getElementById('articleBack').onclick = goBackFromArticle;
   document.title = post.title + ' — RoboTun';
   history.pushState({ type: 'post', id }, '', '#post/' + id);
-  renderSimilarTopics(post);
-  renderRecentChanges(post);
   showPage('pageArticle');
+  renderSidebar(post);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -225,69 +229,52 @@ function goBackFromArticle() {
   }
 }
 
-// ── Sidebar: Similar Topics ────────────────────────────────
-function renderSimilarTopics(currentPost) {
-  const el = document.getElementById('similarTopicsList');
-  if (!el) return;
+// ── Sidebar: Similar Topics & Recent Changes ───────────────
+function renderSidebar(currentPost) {
+  // Similar Topics: posts sharing the most tags with current post
   const currentTags = (currentPost.tags || []).map(t => t.toLowerCase());
+
   const scored = allPosts
     .filter(p => p.id !== currentPost.id)
     .map(p => {
-      const pTags = (p.tags || []).map(t => t.toLowerCase());
-      const shared = currentTags.filter(t => pTags.includes(t)).length;
-      return { post: p, score: shared };
+      const sharedTags = (p.tags || []).filter(t => currentTags.includes(t.toLowerCase())).length;
+      return { post: p, score: sharedTags };
     })
     .filter(x => x.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 6);
+    .sort((a, b) => b.score - a.score || new Date(b.post.date) - new Date(a.post.date))
+    .slice(0, 5);
 
-  if (!scored.length) {
-    el.innerHTML = '<p class="sidebar-empty">No similar topics found.</p>';
-    return;
+  const similarEl = document.getElementById('similarTopicsList');
+  if (similarEl) {
+    if (scored.length) {
+      similarEl.innerHTML = scored.map(({ post }) => `
+        <div class="sidebar-item" onclick="openPost('${post.id}','article')">
+          <div class="sidebar-item-tags">${(post.tags || []).slice(0, 3).map(t => `<span class="sidebar-tag">${t}</span>`).join('')}</div>
+          <div class="sidebar-item-title">${post.title}</div>
+          <div class="sidebar-item-date">${fmtDate(post.date)}</div>
+        </div>`).join('');
+    } else {
+      similarEl.innerHTML = '<p class="sidebar-empty">No similar posts found.</p>';
+    }
   }
-  el.innerHTML = scored.map(({ post: p }) => {
-    const catKey = Object.keys(CATEGORIES).find(k =>
-      CATEGORIES[k].tags.some(t => (p.tags || []).map(x => x.toLowerCase()).includes(t))
-    ) || 'linux';
-    const colorVar = CAT_COLORS[catKey] || '--c-linux';
-    return `
-    <div class="sidebar-item" onclick="openPost('${p.id}','article')">
-      <span class="sidebar-item-title">${p.title}</span>
-      <span class="sidebar-item-bar" style="background:var(${colorVar})"></span>
-    </div>`;
-  }).join('');
-}
 
-// ── Sidebar: Recent Changes ────────────────────────────────
-function renderRecentChanges(currentPost) {
-  const el = document.getElementById('recentChangesList');
-  if (!el) return;
+  // Recent Changes: latest 5 posts (excluding current)
   const recent = allPosts
     .filter(p => p.id !== currentPost.id)
     .slice(0, 5);
 
-  if (!recent.length) {
-    el.innerHTML = '<p class="sidebar-empty">No recent posts.</p>';
-    return;
+  const recentEl = document.getElementById('recentChangesList');
+  if (recentEl) {
+    if (recent.length) {
+      recentEl.innerHTML = recent.map(post => `
+        <div class="sidebar-item" onclick="openPost('${post.id}','article')">
+          <div class="sidebar-item-title">${post.title}</div>
+          <div class="sidebar-item-date">${fmtDate(post.date)}</div>
+        </div>`).join('');
+    } else {
+      recentEl.innerHTML = '<p class="sidebar-empty">No recent posts.</p>';
+    }
   }
-  el.innerHTML = recent.map(p => {
-    const catKey = Object.keys(CATEGORIES).find(k =>
-      CATEGORIES[k].tags.some(t => (p.tags || []).map(x => x.toLowerCase()).includes(t))
-    ) || 'linux';
-    const colorVar = CAT_COLORS[catKey] || '--c-linux';
-    const hasThumb = p.thumbnail || p.image || null;
-    return `
-    <div class="sidebar-rc-item" onclick="openPost('${p.id}','article')">
-      <div class="sidebar-rc-text">
-        <span class="sidebar-item-title">${p.title}</span>
-        ${p.excerpt ? `<span class="sidebar-rc-excerpt">${p.excerpt.slice(0,70)}${p.excerpt.length>70?'…':''}</span>` : ''}
-      </div>
-      ${hasThumb
-        ? `<img class="sidebar-rc-thumb" src="${hasThumb}" alt="" />`
-        : `<span class="sidebar-rc-dot" style="background:var(${colorVar})"></span>`
-      }
-    </div>`;
-  }).join('');
 }
 
 // ── Page switching ─────────────────────────────────────────
@@ -550,14 +537,46 @@ function markdownToEditorFragment(md) {
         break;
       }
       const alt = text.slice(imgStart + 2, altEnd);
-      // Find closing ")" — for base64 data URIs, find the last ")" before next "![" or end
-      let urlStart = altEnd + 2;
+      const urlStart = altEnd + 2;
+
+      // Find the correct closing ")" for this image's URL.
+      // Strategy: the URL ends at the first ")" that is immediately followed by
+      // either end-of-string, whitespace/newline, or the start of a new image "![".
+      // This handles base64 data URIs which may contain ")" internally (rare but safe).
       let urlEnd = -1;
-      const nextImg = text.indexOf('![', urlStart);
-      // Search for ")" from end of potential URL backward
-      const searchEnd = nextImg === -1 ? text.length : nextImg;
-      // Find the last ")" in the window
-      urlEnd = text.lastIndexOf(')', searchEnd - 1);
+      let searchPos = urlStart;
+      while (searchPos < text.length) {
+        const candidate = text.indexOf(')', searchPos);
+        if (candidate === -1) break;
+        // Check what comes right after this ")"
+        const after = candidate + 1;
+        if (after >= text.length) {
+          // End of string — this is the closing paren
+          urlEnd = candidate;
+          break;
+        }
+        const nextChar = text[after];
+        // Valid terminators: end, newline, space, or start of next image
+        if (nextChar === '\n' || nextChar === '\r' || nextChar === ' ' ||
+            text.slice(after, after + 2) === '![') {
+          urlEnd = candidate;
+          break;
+        }
+        // Also stop if the next "![" comes before another ")"
+        const nextImg2 = text.indexOf('![', searchPos);
+        if (nextImg2 !== -1 && nextImg2 < candidate) {
+          // No valid ")" found before the next image tag — use lastIndexOf up to nextImg2
+          urlEnd = text.lastIndexOf(')', nextImg2 - 1);
+          break;
+        }
+        searchPos = candidate + 1;
+      }
+      // Fallback: if still not found, use the next "![" boundary or end
+      if (urlEnd < urlStart) {
+        const nextImg3 = text.indexOf('![', urlStart);
+        const searchEnd = nextImg3 === -1 ? text.length : nextImg3;
+        urlEnd = text.lastIndexOf(')', searchEnd - 1);
+      }
       if (urlEnd < urlStart) {
         results.push({ type: 'text', value: text.slice(imgStart) });
         i = imgStart + 2;
