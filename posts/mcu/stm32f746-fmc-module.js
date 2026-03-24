@@ -134,7 +134,263 @@ POSTS_DATA.push({
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 FMC stands for Flexiable memory controller. It a hardware peripheral found in modern microcontroller (notably the STM32 series). That allows internal CPU communicating with various type of external memory as if they were a part of the internal address space.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -392,7 +648,199 @@ In simpeler terms, it acts as "bridge" translate the processor internal bus comm
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 The primary goal is memory expansion.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -522,7 +970,135 @@ Flexiable memory controller includes three memory controller:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 - NOR/PSRAM memory controller
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -652,7 +1228,135 @@ Flexiable memory controller includes three memory controller:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 - Synchronous DRAM memory controller
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -782,7 +1486,135 @@ Flexiable memory controller includes three memory controller:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### Main fearture
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -882,6 +1714,38 @@ Flexiable memory controller includes three memory controller:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 - Word, half-word, byte access
 - SDRAM clock can be HCLK/2 or HCLK/3
 - Automatic row and bank boundary management
@@ -893,6 +1757,70 @@ Flexiable memory controller includes three memory controller:
 - SDRAM power-up initialization by software
 - CAS latency of 1,2,3
 - Cacheable Read FIFO with depth of 6 lines x32-bit (6 x14-bit address tag)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1086,6 +2014,134 @@ Flexiable memory controller includes three memory controller:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 | SDRAM signal | GPIO Pin | Description |
 | --- | --- | --- |
 | SDCLK | PG8 | SDRAM clock |
@@ -1102,7 +2158,15 @@ Flexiable memory controller includes three memory controller:
 
 
 
+
+
+
+
 ### SDRAM Initialization
+
+
+
+
 
 
 
@@ -1112,8 +2176,20 @@ Flexiable memory controller includes three memory controller:
 
 
 
+
+
+
+
 Step1: Enable clock GPIOC D E F G H
 *If you want to know which bus GPIO was be clock controller, you can see at STM32F746 datasheet 
+
+
+
+
+
+
+
+
 
 
 
@@ -1132,8 +2208,25 @@ Step1: Enable clock GPIOC D E F G H
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 In block diagram, every GPIOx connect to AHB1.
 ➡　GPIO clock controller is AHB1 bus.
+
+
+
+
+
 
 
 
@@ -1143,9 +2236,19 @@ In block diagram, every GPIOx connect to AHB1.
 
 
 
+
+
+
+
+
+
 *Note : 
 - 0 : Disable
 - 1 : Enable
+
+
+
+
 
 
 
@@ -1163,7 +2266,23 @@ tmpreg = RCC->AHB1ENR; 
 
 
 
+
+
+
+
+
+
+
+
 Step2: Configure GPIO Pin
+
+
+
+
+
+
+
+
 
 
 
@@ -1246,7 +2365,17 @@ GPIOH->PUPDR = 0x00000440; 
 
 
 
+
+
+
+
+
+
 Step3: Enable FMC clock
+
+
+
+
 
 
 
@@ -1260,7 +2389,21 @@ tmpreg = RCC->AHB3ENR;
 
 
 
-Step4: Configure FMC SDRAM controller
+
+
+
+
+Step4: Configure FMC SDRAM controller (FMC_SDCR - configuration register)
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1273,21 +2416,111 @@ Step4: Configure FMC SDRAM controller
 | --- | --- | --- |
 | NC | 00 | ➡ 8 bits column |
 | NR | 01 | ➡ 12 bits row |
-| MWID | 10 | ➡ 32 bits |
+| MWID | 10 | ➡ 16 bits |
 | NB | 1 | ➡ 4 bank |
 | CAS[1:0] | 11 | ➡ 3 cycles |
-| WP | 0 | ➡ write to SDRAm are allowed |
+| WP | 0 | ➡ write to SDRAM are allowed |
 | SDCLK | 10 | ➡ SDCLK period = 2 x HCLK periods |
 | RBURST | 1 | ➡ single read requests are always managed as bursts |
 | RPIPE | 00 | ➡ No HCLK delay |
 
 
+\`\`\`c
+FMC_Bank5_6->SDCR[0] = 0x00001954;
+\`\`\`
 
-![image.png](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAuAAAACzCAYAAADIW6l5AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAA=)
+
+Step5: Configure FMC SDRAM controller (FMC_SDTR - Timming register)
+
+
+| Name Bits | Value | Description |
+| --- | --- | --- |
+| TMRD[3:0] | 0001 | ➡ 2 Clock cycles |
+| TXSR[3:0] | 0101 | ➡ 7 Clock cycles |
+| TRAS[3:0] | 0011 | ➡ 4 Clock cycles |
+| TRCD[3:0] | 0101 | ➡ 7 Clock cycles |
+| TRP[3:0] | 0101 | ➡ 2 Clock cycles |
+| TRCD[3:0] | 0001 | ➡ 2 Clock cycles |
+| TWR[3:0] | 0001 | ➡ 2 Clock cycles |
+\`\`\`c
+FMC_Bank5_6->SDTR[0] = 0x01116361;
+\`\`\`
 
 
 
 
+Step6: Initialize SDRAM
+
+
+1) Set MODE bits to ‘001’ and configure the Target Bank bits (CTB1 and/or CTB2) in the FMC_SDCMR register to start delivering the clock to the memory (SDCKE is driven high).
+
+
+\`\`\`c
+/* Clock enable command */
+FMC_Bank5_6->SDCMR = 0x00000011;
+tmpreg = FMC_Bank5_6->SDSR & 0x00000020;
+while ((tmpreg != 0) && (timeout-- > 0))
+{	
+    tmpreg = FMC_Bank5_6->SDSR & 0x00000020;
+} 
+\`\`\`
+
+
+2) Wait during the prescribed delay period. Typical delay is around 100 μs (refer to the SDRAM datasheet for the required delay after power-up).
+
+
+\`\`\`c
+/* Delay */
+for (index = 0; index < 1000; index++)	
+    ; 
+\`\`\`
+
+
+3) Set MODE bits to ‘010’ and configure the Target Bank bits (CTB1 and/or CTB2) in the FMC_SDCMR register to issue a “Precharge All” command.
+
+
+\`\`\`c
+/* PALL command */
+FMC_Bank5_6->SDCMR = 0x00000012;
+timeout = 0xFFFF;
+while ((tmpreg != 0) && (timeout-- > 0))
+{	
+    tmpreg = FMC_Bank5_6->SDSR & 0x00000020;
+} 
+\`\`\`
+
+
+4) Set MODE bits to ‘011’, and configure the Target Bank bits (CTB1 and/or CTB2) as well as the number of consecutive Auto-refresh commands (NRFS) in the FMC_SDCMR register. Refer to the SDRAM datasheet for the number of Auto-refresh commands that should be issued. Typical number is 8.
+
+
+\`\`\`c
+/* Auto refresh command */
+FMC_Bank5_6->SDCMR = 0x000000F3;
+timeout = 0xFFFF;
+while ((tmpreg != 0) && (timeout-- > 0))
+{
+    tmpreg = FMC_Bank5_6->SDSR & 0x00000020;
+} 
+\`\`\`
+
+
+
+5) Configure the MRD field according to the SDRAM device, set the MODE bits to '100', and configure the Target Bank bits (CTB1 and/or CTB2) in the FMC_SDCMR register to issue a "Load Mode Register" command in order to program the SDRAM device.
+In particular:
+a) the CAS latency must be selected following configured value in FMC_SDCR1/2 registers
+b) the Burst Length (BL) of 1 must be selected by configuring the M[2:0] bits to 000 in the mode register. Refer to SDRAM device datasheet.
+If the Mode Register is not the same for both SDRAM banks, this step has to be repeated twice, once for each bank, and the Target Bank bits set accordingly.
+
+
+\`\`\`c
+/* MRD register program */
+FMC_Bank5_6->SDCMR = 0x00044014;
+timeout = 0xFFFF;
+while ((tmpreg != 0) && (timeout-- > 0))
+{	
+    tmpreg = FMC_Bank5_6->SDSR & 0x00000020;
+} 
+\`\`\`
 
 
 ## Reference matterial
@@ -1308,7 +2541,31 @@ Step4: Configure FMC SDRAM controller
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 [STM32F746 data sheet](https://www.st.com/resource/en/datasheet/stm32f745ie.pdf)
+
+
+
+
+
+
+
+
 
 
 
