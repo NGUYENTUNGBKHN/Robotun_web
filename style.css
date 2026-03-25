@@ -1186,7 +1186,10 @@ input[type="date"].field-input { font-family: var(--ff-mono); }
 
 .field-textarea-sm { min-height: 60px; resize: vertical; }
 .field-textarea-lg {
-  min-height: 480px; resize: vertical;
+  min-height: 480px;
+  max-height: 1000px;
+  resize: vertical;
+  overflow-y: auto;
   font-family: var(--ff-mono); font-size: .82rem; line-height: 1.7;
   border-radius: 0 0 var(--r) var(--r);
   border-top: none;
@@ -1194,6 +1197,7 @@ input[type="date"].field-input { font-family: var(--ff-mono); }
 
 /* Admin write: contenteditable with inline image embeds (markdown kept in memory on export) */
 .md-write-editor {
+  max-height: 1000px;
   overflow-y: auto;
   outline: none;
   cursor: text;
