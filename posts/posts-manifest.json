@@ -1,6 +1,8 @@
 {
   "posts": [
     "mcu/stm32f746-fmc-module.js",
+    "mcu/stm32f746-qspi-flash-module.js",
+    "mcu/Dev-cortex-m-on-vscode.js",
     "fpga/build-uboot-cyclone-v.js",
     "fpga/Gen_compiling_preloader.js",
     "fpga/Preloader-uboot-on-DE10-nano-windows-wsl.js",

@@ -4,7 +4,7 @@ POSTS_DATA.push({
   excerpt: "STM32F746 QSPI flash (Quad Serial Protocol Interface)",
   date: "2026-03-27",
   author: "Gentantun",
-  tags: ["stm32", "mcu", "stm32f746. qspi"],
+  tags: ["stm32", "mcu", "stm32f746", "qspi"],
   content: `## Introduction
 
 
@@ -43,12 +43,9 @@ Main feature :
 
 - 8, 16, 32-bit data accesses transmission 
 
-
 - DMA channel for indirect mode opearations
 
-
 - Interrupt generation on FIFO thredhold, timeout, opearation complete, and access error
-
 
 
 
@@ -65,8 +62,6 @@ Dual flash
 
 
 ### QUADSPI pin
-
-
 
 
 | Signal name | Signal type | Description |
