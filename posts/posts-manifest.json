@@ -7,6 +7,7 @@
     "fpga/build-uboot-cyclone-v.js",
     "fpga/Gen_compiling_preloader.js",
     "fpga/Preloader-uboot-on-DE10-nano-windows-wsl.js",
-    "fpga/Learn-VHDL-FPGA-dev-part1.js"
+    "fpga/Learn-VHDL-FPGA-dev-part1.js",
+    "fpga/Learn-VHDL-FPGA-dev-part2.js"
   ]
 }
