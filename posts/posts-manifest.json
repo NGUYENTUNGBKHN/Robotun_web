@@ -1,5 +1,6 @@
 {
   "posts": [
+    "linux/porting-u-boot-stm32f746-disco-part1.js",
     "mcu/stm32f746-fmc-module.js",
     "mcu/stm32f746-qspi-flash-module.js",
     "mcu/Dev-cortex-m-on-vscode.js",
