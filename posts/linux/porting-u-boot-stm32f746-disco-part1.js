@@ -7,15 +7,11 @@ POSTS_DATA.push({
   tags: ["stm32", "mcu", "stm32f746", "linux"],
   content: `## Introduction
 
-
 - U-Boot :
-
 
 ## Re-configure U-Boot configuration file
 
-
 New source
-
 
 
 \`\`\`c
@@ -58,7 +54,6 @@ ARM architecture
 
 
 - Target select : Support STMicroelectronics STM32 MCU with cortex M
-
 
 - stm32f7 family
 
@@ -524,5 +519,24 @@ Tools options 
 - use OpenSSL's libcrypto library for host tools
 
 
-- Enable kwbimage support in host tools`
+
+
+- Enable kwbimage support in host tools
+
+
+## Tips setup wsl
+
+
+\`\`\`c
+sudo nano /etc/wsl.conf
+\`\`\`
+
+
+\`\`\`c
+[interop]
+appendWindowsPath = false
+\`\`\`
+
+
+## Reference material`
 });
