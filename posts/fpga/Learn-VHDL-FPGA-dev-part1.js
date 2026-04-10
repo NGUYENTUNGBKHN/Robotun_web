@@ -8,12 +8,9 @@ POSTS_DATA.push({
   content: `## Introduction
 
 
-
-
 ### 1. What is the VHDL?
 
 - VHDL is a Hardware Descriptive Language, same as Verilog.
-
 
 - We use VHDL to describe a hardware ciruit.
 
@@ -22,10 +19,7 @@ POSTS_DATA.push({
 - When you are writing VHDL, you are not programming, you can think of it more as architecting a digital circuit.
 
 
-
 - The advantage of using VHDL is that if you architect your design correctly, you can take the VHDL design and port it to another FPGA/CPLD.
-
-
 
 ### 2. Where is VHDL used:
 
@@ -101,9 +95,7 @@ Step 6: Default Part
 
 - click Next.
 
-
 Step 7: New Project Summary
-
 
 
 - click Finish
@@ -182,9 +174,11 @@ Step8: Summary
 
 
 
+
 \`\`\`c
 -- This is a comment-- This is another comment
 \`\`\`
+
 
 - Library "library" : Used to designate the library used in your design
 -- This is a comment
@@ -201,7 +195,9 @@ Step8: Summary
 
 ### 2. Library
 
+
 [std_logic_1164.vdl](https://github.com/NGUYENTUNGBKHN/ghdl/blob/master/libraries/ieee/std_logic_1164.vhdl)
+
 
 
 1) There are key feature:
@@ -219,6 +215,7 @@ type STD_ULOGIC is ( 'U',        -- Uninitialized
                    );  
 \`\`\`
 
+
 - The STDULOGIC type is the foundation of the IEEE 1164 standard used in VHDL. Unlike simple bit (which is only 0 or 1), this 9-value logic system allows you to simulate how digital hardware behaves in the real world, including electrical strengths and uninitialized states.
 - The "Forcing" Values (Strong Signals)
 + '0' (Forcing 0): + '1' (Forcing 1):+ 'X' (Forcing Unknown)
@@ -227,17 +224,27 @@ type STD_ULOGIC is ( 'U',        -- Uninitialized
 - The Physical/Simulation States
 + 'Z' (High Impedance):+ 'U' (Uninitialized):+ '-' (Don't care):
 
+
 ### 3. VHDL entities & Architecture
 
 
+
+
 Entity
+
+
 
 
 The top of every design hierachy must be an enitty.
 Entities may range from primitive circuits to complex assemblies.
 
 
+
+
 The entity code typically defines just the interface of the entity
+
+
+
 
 
 
@@ -258,6 +265,7 @@ generic_variable_declarations are of the form:
 input_and_out_variable_declaration are of the form:
   variable_name : port_mode variable_type;
 port_mode may be in out inout buffer linkage
+
 
 
 
@@ -297,9 +305,10 @@ Unsigned 
 Signed
 Integer
 
+
 ### 5. Concurrent and Sequential Statement
 Concurrent Statements
-- Sinal Assignment : These can be inside a process, case statement, etc.
+- Signal Assignment : These can be inside a process, case statement, etc.
 - Process Statement : You can rearrange process statements.
 Sequential Statements
 - If Statement: infer priority
